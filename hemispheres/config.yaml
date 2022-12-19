@@ -1,0 +1,36 @@
+seed: 1
+evaluate: False
+
+trainer_params:
+  accelerator: null
+  gpus: 1
+  default_root_dir: /kaggle/project
+  max_epochs: 100
+  log_every_n_steps: 10
+  accumulate_grad_batches: 2
+
+logger:
+  type: TensorBoardLogger
+  save_dir: ./logs/
+  name: resnet9-ensemble5
+  version: layer=only1|lr=1.0e-4|wd=1.0e-5|
+
+hparams:
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+  optimizer: adam
+  warmup_epochs: 0
+  batch_size: 256
+  num_workers: 4
+  # narrow_model_path: /home/chandramouli/kaggle/cerenaut/classification/logs/left-right-narrow-sparsity-0.9-linear/res9_512-fc100|lr=1.0e-4|/checkpoints/epoch=90-val_acc=0.67.ckpt
+  # broad_model_path: /home/chandramouli/kaggle/cerenaut/classification/logs/left-right-broad-sparsity-0.7-linear/res9_512-fc20|lr=1.0e-4|/checkpoints/epoch=98-val_acc=0.74.ckpt
+  # broad_k: 0.9
+  # broad_per_k: 0.9
+  # narrow_k: 0.9
+  # narrow_per_k: 0.9
+
+ckpt_callback:
+  save_top_k: 2
+  monitor: val_loss
+  mode: min
+  save_last: True
