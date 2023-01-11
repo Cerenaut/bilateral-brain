@@ -106,7 +106,7 @@ class EnsembleHemiSphere(Dataset):
             with open(file, 'rb') as fo:
                 dict = pickle.load(fo, encoding='bytes')
             return dict
-        data_pre_path = '/home/chandramouli/Downloads/cifar-100-python/'
+        data_pre_path = '/path_cifar-100-python/'
         data_path = data_pre_path + self.mode
         data_dict = unpickle(data_path)
         del data_dict[b'data']
