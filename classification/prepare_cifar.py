@@ -10,11 +10,11 @@ def unpickle(file):
         dict = pickle.load(fo, encoding='bytes')
     return dict
     
-metadata_path = '/home/chandramouli/Downloads/cifar-100-python/meta' # change this path`\
+metadata_path = '/path_cifar-100-dataset' # change this path`\
 metadata = unpickle(metadata_path)
 superclass_dict = dict(list(enumerate(metadata[b'coarse_label_names'])))
 
-data_pre_path = '/home/chandramouli/Downloads/cifar-100-python/' # change this path
+data_pre_path = '/path_cifar-100-dataset' # change this path
 # File paths
 data_train_path = data_pre_path + 'train'
 data_test_path = data_pre_path + 'test'
@@ -32,7 +32,7 @@ filename_test = data_test_dict[b'filenames']
 label_test = np.array(data_test_dict[b'fine_labels'])
 print(fine_label_train)
 print(coarse_label_train)
-dir = '/home/chandramouli/Documents/kaggle/CIFAR-100'
+dir = '/path_to_cifar100_dataset'
 # base_dir = osp.join(dir, 'test')
 # os.makedirs(base_dir, exist_ok=True)
 

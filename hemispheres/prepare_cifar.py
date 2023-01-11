@@ -8,10 +8,10 @@ def unpickle(file):
         dict = pickle.load(fo, encoding='bytes')
     return dict
     
-metadata_path = '/home/chandramouli/Downloads/cifar-100-python/meta' # change this path`\
+metadata_path = '/path_cifar-100-dataset' # change this path`\
 metadata = unpickle(metadata_path)
 superclass_dict = dict(list(enumerate(metadata[b'coarse_label_names'])))
-data_pre_path = '/home/chandramouli/Downloads/cifar-100-python/' # change this path
+data_pre_path = '/path_cifar-100-dataset/' # change this path
 # File paths
 data_train_path = data_pre_path + 'train'
 data_test_path = data_pre_path + 'test'
