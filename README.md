@@ -31,19 +31,20 @@ Go to `classification` folder.
 Configure to use specific labels and run:
 ``python trainer.py``
 
+Get the test accuracy with `python test.py`.
 Note the name of the checkpoint.
 
 
 Configure to use general labels and run:
 ``python trainer.py``
 
+Get the test accuracy with `python test.py`.
 Note the name of the checkpoint.
 
 
 Go to `hemispheres` folder.
 Configure to use the appropriate checkpoints.
 
+Run ``python trainer.py``
 
-
-Hardcoded lines:
-path to the data and split file on your local machine, in `trainer.py` (lines 80 and 81), and `datamodule.py` (line 139, 203, 207).  (lines in main are not used)
+Get the test accuracy with `python test.py`.
