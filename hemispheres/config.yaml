@@ -22,12 +22,12 @@ hparams:
   warmup_epochs: 0
   batch_size: 256
   num_workers: 4
-  # narrow_model_path: /home/chandramouli/kaggle/cerenaut/classification/logs/left-right-narrow-sparsity-0.9-linear/res9_512-fc100|lr=1.0e-4|/checkpoints/epoch=90-val_acc=0.67.ckpt
-  # broad_model_path: /home/chandramouli/kaggle/cerenaut/classification/logs/left-right-broad-sparsity-0.7-linear/res9_512-fc20|lr=1.0e-4|/checkpoints/epoch=98-val_acc=0.74.ckpt
-  # broad_k: 0.9
-  # broad_per_k: 0.9
-  # narrow_k: 0.9
-  # narrow_per_k: 0.9
+  narrow_model_path: /path/to/narrow_model_checkpoint
+  broad_model_path: /path/to/broad_model_checkpoint
+  broad_k: 0.9
+  broad_per_k: 0.9
+  narrow_k: 0.9
+  narrow_per_k: 0.9
 
 ckpt_callback:
   save_top_k: 2

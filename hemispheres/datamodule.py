@@ -136,7 +136,7 @@ class DataModule(pl.LightningDataModule):
                     batch_size: int = 32,
                     num_workers:int = 4,
                     split: bool = False,
-                    split_file: str="/home/chandramouli/kaggle/cerenaut/analysis/train_split1.txt"):
+                    split_file: str="/path/to/split"):
         super().__init__()
         self.train_dir = train_dir
         self.val_dir = val_dir
@@ -159,24 +159,14 @@ class DataModule(pl.LightningDataModule):
             transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
         ])
         if self.split:
-            self.mnist_train = [EnsembleHemiSphere(
+            self.mnist_train = EnsembleHemiSphere(
                 root=self.train_dir,
                 transform=train_transforms,
-                split_file=self.split_file),
-                    EnsembleHemiSphere(
-                root=self.train_dir.replace('train', 'val'),
-                transform=train_transforms,
-                split_file=self.split_file.replace('train', 'val'))]
-            self.mnist_train = ConcatDataset(self.mnist_train)
+                split_file=self.split_file)
         else:    
-            self.mnist_train = [HemiSphere(
+            self.mnist_train = HemiSphere(
             root=self.train_dir,
-            transform=train_transforms),
-                HemiSphere(
-            root=self.train_dir.replace('train', 'val'),
-            transform=train_transforms)]
-            self.mnist_train = ConcatDataset(self.mnist_train)
-        
+            transform=train_transforms)        
         self.mnist_val = HemiSphere(
             root=self.val_dir,
             mode='test',

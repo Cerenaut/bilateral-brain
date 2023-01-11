@@ -75,8 +75,8 @@ def main() -> None:
                             logger=logger,
                             )
         imdm = DataModule(
-            train_dir='/home/chandramouli/Documents/kaggle/CIFAR-100/train',
-            val_dir='/home/chandramouli/Documents/kaggle/CIFAR-100/test',
+            train_dir='/path/to/train_dir',
+            val_dir='/path/to/test_dir',
             batch_size=config['hparams']['batch_size'])
         trainer.fit(model, datamodule=imdm)
         shutil.copy('./config.yaml', f'{dest_dir}/config.yaml')

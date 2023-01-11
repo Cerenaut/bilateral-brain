@@ -69,14 +69,9 @@ class DataModule(pl.LightningDataModule):
             transforms.ToTensor(),
             transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
         ])
-        self.mnist_train = [UnsupervisedFolder(
+        self.mnist_train = UnsupervisedFolder(
             root=self.train_dir,
-            transform=train_transform),
-                UnsupervisedFolder(
-            root=self.train_dir.replace('train', 'val'),
-            transform=train_transform)]
-        self.mnist_train = ConcatDataset(self.mnist_train)
-        
+            transform=train_transform)
         self.mnist_val = UnsupervisedFolder(
             root=self.val_dir,
             transform=base_transforms)
