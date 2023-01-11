@@ -4,7 +4,7 @@ evaluate: False
 trainer_params:
   accelerator: null
   gpus: 1
-  default_root_dir: /kaggle/project
+  default_root_dir: /root_dir
   max_epochs: 100
   log_every_n_steps: 10
   gradient_clip_val: 10
