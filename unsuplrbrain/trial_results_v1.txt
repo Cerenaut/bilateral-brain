@@ -1,5 +1,0 @@
-Number of finished trials: 1
-Best trial:
-  Value: 0.02250000089406967
-  Params: 
-    k: 16    per_k: 0.65    lr: 2
