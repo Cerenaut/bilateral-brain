@@ -77,8 +77,8 @@ def main() -> None:
                             logger=logger,
                             )
         imdm = DataModule(
-            train_dir='/home/chandramouli/Documents/kaggle/CIFAR-100/train',
-            val_dir='/home/chandramouli/Documents/kaggle/CIFAR-100/test',
+            train_dir='/path/to/train_dataset',
+            val_dir='/path/to/test_dataset',
             batch_size=config['hparams']['batch_size'],
             num_workers=config['hparams']['num_workers'],
             split=False,
