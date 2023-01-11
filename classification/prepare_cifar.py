@@ -32,7 +32,7 @@ filename_test = data_test_dict[b'filenames']
 label_test = np.array(data_test_dict[b'fine_labels'])
 print(fine_label_train)
 print(coarse_label_train)
-dir = '/home/chandramouli/Documents/kaggle/CIFAR-100'
+dir = '/path_to_cifar100_dataset'
 # base_dir = osp.join(dir, 'test')
 # os.makedirs(base_dir, exist_ok=True)
 
