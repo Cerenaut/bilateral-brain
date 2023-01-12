@@ -10,17 +10,25 @@ def unpickle(file):
         dict = pickle.load(fo, encoding='bytes')
     return dict
     
-metadata_path = '/path_cifar-100-dataset' # change this path`\
+# set paths here
+# ------------------
+# the downloaded source cifar
+metadata_path = '/Users/gideon/Dev/datasets/cifar-100-python/meta' # must be the 'meta' file
+data_pre_path = '/Users/gideon/Dev/datasets/cifar-100-python/' # must have a trailing slash
+# the output of this script goes here
+dir = 'datasets/CIFAR100'
+
 metadata = unpickle(metadata_path)
 superclass_dict = dict(list(enumerate(metadata[b'coarse_label_names'])))
 
-data_pre_path = '/path_cifar-100-dataset' # change this path
 # File paths
 data_train_path = data_pre_path + 'train'
 data_test_path = data_pre_path + 'test'
+
 # Read dictionary
 data_train_dict = unpickle(data_train_path)
 data_test_dict = unpickle(data_test_path)
+
 # Get data (change the coarse_labels if you want to use the 100 classes)
 print(data_train_dict.keys())
 data_train = data_train_dict[b'data']
@@ -32,7 +40,8 @@ filename_test = data_test_dict[b'filenames']
 label_test = np.array(data_test_dict[b'fine_labels'])
 print(fine_label_train)
 print(coarse_label_train)
-dir = '/path_to_cifar100_dataset'
+
+
 # base_dir = osp.join(dir, 'test')
 # os.makedirs(base_dir, exist_ok=True)
 

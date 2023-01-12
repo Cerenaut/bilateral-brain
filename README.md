@@ -2,16 +2,19 @@
 
 Guide to the folder structure:
 
-- Hemishperes:
-Combine the hemispheres and train and test only the last layers.
-
 - Classification:
 Train one single hemispheres at a time.
+
+- Hemishperes:
+Combine the hemispheres and train and test only the last layers.
 
 
 **Preparation**
 
-Download CIFAR100 and run the `prepare_cifar.py` script to create the broad and narrow dataset folders.
+Download [CIFAR100](https://www.cs.toronto.edu/~kriz/cifar.html) for python, and put it in your chosen folder.
+
+Modify `prepare_cifar.py` to refer to your data location, and run the script to create the broad and narrow dataset folders.
+
 
 Each folder has a `config.yaml` which you can use configure the experiment.
 In particular, set the path to dataset and checkpoints there.
