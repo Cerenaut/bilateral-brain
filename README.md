@@ -13,7 +13,7 @@ Combine the hemispheres and train and test only the last layers.
 
 Download [CIFAR100](https://www.cs.toronto.edu/~kriz/cifar.html) for python, and put it in your chosen folder.
 
-Modify `prepare_cifar.py` to refer to your data location, and run the script to create the broad and narrow dataset folders.
+Modify the paths in `prepare_cifar.py` (at the top of the file), and run the script to create the fine and coarse dataset folders.
 
 
 Each folder has a `config.yaml` which you can use configure the experiment.

@@ -10,3 +10,4 @@ PyYAML==6.0
 scikit_learn==1.0.1
 torchmetrics==0.6.0
 opencv-python
+test-tube

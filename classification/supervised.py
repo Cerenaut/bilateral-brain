@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any
 
 import sys
 sys.path.append('../')
-import timm
+
 import torch
 import torchvision.utils as vutils
 import torch.nn.functional as F
@@ -13,7 +13,6 @@ from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
 
 from models.resnet import resnet18, resnet34
 from models.resnet_v0 import resnet9, invresnet9
-from unsuplrbrain.model import ResNet9Enc, InvertedResNet9Enc
 from pytorch_lightning import LightningModule
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 
