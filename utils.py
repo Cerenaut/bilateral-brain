@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -45,6 +46,12 @@ def yaml_func(config_param):
         if key in global_func:
             call = globals()[key](**config_param)
         return call
+
+def pil_loader(path: str) -> Image.Image:
+    # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
+    with open(path, 'rb') as f:
+        img = Image.open(f)
+        return img.convert('RGB')
 
 def inverse_normalize(img,
                       mean=(0.485, 0.456, 0.406),

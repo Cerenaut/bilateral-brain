@@ -3,20 +3,22 @@ evaluate: False
 
 trainer_params:
   accelerator: null
-  gpus: 1
-  default_root_dir: /root_dir
+  gpus: 0
+  default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
   max_epochs: 100
   log_every_n_steps: 10
   accumulate_grad_batches: 2
 
 dataset:
-  train_dir: /train_dir
-  val_dir: /valid_dir
+  train_dir: ../datasets/CIFAR100/train/coarse
+  val_dir: ../datasets/CIFAR100/test/coarse
+  test_dir: ../datasets/CIFAR100/test/coarse
+  raw_data_dir: ../../datasets/cifar-100-python/
 
 logger:
   type: TensorBoardLogger
-  save_dir: ./logs/
-  name: resnet9-ensemble5
+  save_dir: ./logs/         # logs and checkpoints go here
+  name: logger_name         # customize the name to the run you are doing
   version: layer=only1|lr=1.0e-4|wd=1.0e-5|
 
 hparams:
@@ -26,12 +28,12 @@ hparams:
   warmup_epochs: 0
   batch_size: 256
   num_workers: 4
-  narrow_model_path: /path/to/narrow_model_checkpoint
-  broad_model_path: /path/to/broad_model_checkpoint
   broad_k: 0.9
   broad_per_k: 0.9
   narrow_k: 0.9
   narrow_per_k: 0.9
+  model_path_fine: /path/to/narrow_model_checkpoint  # path to narrow model checkpoint
+  model_path_broad: /path/to/broad_model_checkpoint  # path to broad model checkpoint
 
 ckpt_callback:
   save_top_k: 2

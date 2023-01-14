@@ -22,7 +22,7 @@ def unpickle(file):
 # set paths here
 # ------------------------------------------------------
 metadata_path = '/Users/gideon/Dev/datasets/cifar-100-python/meta' # source cifar 'meta' file
-data_pre_path = '/Users/gideon/Dev/datasets/cifar-100-python/' # source cifar files here (must have a trailing slash)
+raw_data_path = '/Users/gideon/Dev/datasets/cifar-100-python/' # source cifar files here (must have a trailing slash)
 target_dir = 'datasets/CIFAR100'    # the output images go here
 # ------------------------------------------------------
 
@@ -30,8 +30,8 @@ metadata = unpickle(metadata_path)
 superclass_dict = dict(list(enumerate(metadata[b'coarse_label_names'])))
 
 # file paths
-data_train_path = data_pre_path + 'train'
-data_test_path = data_pre_path + 'test'
+data_train_path = raw_data_path + 'train'
+data_test_path = raw_data_path + 'test'
 
 # read dictionary
 data_train_dict = unpickle(data_train_path)

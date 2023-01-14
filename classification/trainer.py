@@ -12,10 +12,6 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from datamodule import DataModule
 from supervised import SupervisedLightningModule
-
-import sys
-sys.path.append('../')
-
 from utils import run_cli, yaml_func
 
 

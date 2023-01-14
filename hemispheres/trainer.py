@@ -6,7 +6,6 @@ import os.path as osp
 import pytorch_lightning as pl
 
 from pathlib import Path
-from pl_examples import cli_lightning_logo
 from argparse import ArgumentParser, Namespace
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TestTubeLogger, TensorBoardLogger
@@ -18,11 +17,11 @@ from supervised import SupervisedLightningModule
 
 def main() -> None:
     config = run_cli()
-    seeds = [0, 20, 42, 80, 100]
+    seeds = config['seeds']
     for seed in seeds:
-        config['seed'] = seed
-        if config['seed'] is not None:
-            pl.seed_everything(config['seed'])
+        if seed is not None:
+            pl.seed_everything(seed)
+
 
         ckpt_callback = ModelCheckpoint(
             filename='{epoch}-{val_loss:.2f}',
@@ -40,7 +39,7 @@ def main() -> None:
         
         model = SupervisedLightningModule(config)
 
-        logger = TestTubeLogger(
+        logger = TensorBoardLogger(
             config['logger']['save_dir'],
             name=config['logger']['name'] + f"-seed{config['seed']}",
             version=config['logger']['version'],)
@@ -50,7 +49,7 @@ def main() -> None:
                             )
         imdm = DataModule(
             train_dir=config['dataset']['train_dir'],
-            val_dir=config['dataset']['val_dir'],
+            val_dir=config['dataset']['test_dir'],
             batch_size=config['hparams']['batch_size'],
             num_workers=config['hparams']['num_workers'],
             split=False,
@@ -59,5 +58,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    cli_lightning_logo()
     main()

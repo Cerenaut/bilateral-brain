@@ -4,13 +4,13 @@ import glob
 import torch
 import numpy as np
 import os.path as osp
-from PIL import Image
 from tqdm import tqdm
 from torchvision import transforms
 from torch.utils.data import DataLoader, Dataset
 
 from model import SparseAutoencoder, Combiner
 from sklearn.metrics import accuracy_score
+from utils import pil_loader, run_cli
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -18,11 +18,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
 
-def pil_loader(path: str) -> Image.Image:
-    # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
-    with open(path, 'rb') as f:
-        img = Image.open(f)
-        return img.convert('RGB')
+
+config = run_cli()
 
 class HemiSphere(Dataset):
     def __init__(
@@ -51,7 +48,7 @@ class HemiSphere(Dataset):
             with open(file, 'rb') as fo:
                 dict = pickle.load(fo, encoding='bytes')
             return dict
-        data_pre_path = '/home/chandramouli/Downloads/cifar-100-python/'
+        data_pre_path = config['raw_data_dir']
         data_path = data_pre_path + self.mode
         data_dict = unpickle(data_path)
         del data_dict[b'data']
@@ -78,11 +75,8 @@ test_transforms = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.25, 0.25, 0.25))
         ])
-# 1.0e-4 acc = 2.375%
-# 1.0e-3 acc = 1.875%
 
-TEST_FOLDER = '/home/chandramouli/Documents/kaggle/CIFAR-100/test'
-dataset = HemiSphere(root=TEST_FOLDER,
+dataset = HemiSphere(root=config['dataset']['test'],
                         transform=test_transforms,
                         loader=pil_loader,
                         mode='test',)
@@ -102,9 +96,8 @@ model_broad = SparseAutoencoder(num_input_channels=3,
                                 num_classes=20).to(device)
 combiner = Combiner().to(device)
 
-#Narrow Class Model
-CKPT_PATH = '/home/chandramouli/kaggle/cerenaut/hemispheres/logs/hemisphere-non-pretrained/layer=only1|lr=0.0001|wd=1.0e-5|bs=32|opt=adam|/checkpoints/last.ckpt'
-checkpoint = torch.load(CKPT_PATH)
+# Fine Class Model
+checkpoint = torch.load(config['hparams']['model_path_fine'])
 checkpoint['state_dict'] = {k:v for k,v in checkpoint['state_dict'].items()\
      if "model_narrow" in k}
 checkpoint['state_dict'] = {k.replace('model_narrow.',''):v \
@@ -112,9 +105,8 @@ checkpoint['state_dict'] = {k.replace('model_narrow.',''):v \
 model_narrow.load_state_dict(checkpoint['state_dict'])
 model_narrow.eval()
 
-#Broad Class Model
-CKPT_PATH = '/home/chandramouli/kaggle/cerenaut/hemispheres/logs/hemisphere-non-pretrained/layer=only1|lr=0.0001|wd=1.0e-5|bs=32|opt=adam|/checkpoints/last.ckpt'
-checkpoint = torch.load(CKPT_PATH)
+# Broad Class Model
+checkpoint = torch.load(config['hparams']['model_path_broad'])
 checkpoint['state_dict'] = {k:v for k,v in checkpoint['state_dict'].items()\
      if "model_broad" in k}
 checkpoint['state_dict'] = {k.replace('model_broad.',''):v \
@@ -122,9 +114,8 @@ checkpoint['state_dict'] = {k.replace('model_broad.',''):v \
 model_broad.load_state_dict(checkpoint['state_dict'])
 model_broad.eval()
 
-#Combiner Model
-CKPT_PATH = '/home/chandramouli/kaggle/cerenaut/hemispheres/logs/hemisphere-non-pretrained/layer=only1|lr=0.0001|wd=1.0e-5|bs=32|opt=adam|/checkpoints/last.ckpt'
-checkpoint = torch.load(CKPT_PATH)
+# Combiner Model
+checkpoint = torch.load(config['hparams']['model_path_combiner'])
 checkpoint['state_dict'] = {k:v for k,v in checkpoint['state_dict'].items()\
      if "combiner" in k}
 checkpoint['state_dict'] = {k.replace('combiner.',''):v \
@@ -170,9 +161,3 @@ acc_narr = accuracy_score(fines, narrows)
 acc_broad = accuracy_score(coarses, broads)
 print(f"Narrow accuracy {acc_narr}")
 print(f"Broad accuracy {acc_broad}")
-
-# Narrow accuracy 0.2351
-# Broad accuracy 0.3267
-
-# Narrow accuracy 0.224
-# Broad accuracy 0.3193

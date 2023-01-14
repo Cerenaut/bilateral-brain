@@ -1,7 +1,6 @@
 from typing import List, Any, Tuple, Optional, Callable
 
 import torch
-from PIL import Image
 from tqdm import tqdm
 from torchvision import transforms
 from torch.utils.data import DataLoader
@@ -10,8 +9,7 @@ from datamodule import UnsupervisedFolder
 
 from model import SparseAutoencoder
 from sklearn.metrics import accuracy_score
-
-from utils import run_cli
+from utils import pil_loader, run_cli
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -19,11 +17,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
 
-def pil_loader(path: str) -> Image.Image:
-    # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
-    with open(path, 'rb') as f:
-        img = Image.open(f)
-        return img.convert('RGB')
 
 config = run_cli()
 
