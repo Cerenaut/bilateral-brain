@@ -55,9 +55,8 @@ class SupervisedLightningModule(LightningModule):
         self.save_hyperparameters()
 
         self.config = config
-        self.gpus = self.config['trainer_params']['gpus']
+        
         self.batch_size = self.config['hparams']['batch_size']
-
         self.optim = self.config['hparams']['optimizer']
         self.weight_decay = self.config['hparams']['weight_decay']
 

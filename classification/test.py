@@ -11,6 +11,8 @@ from datamodule import UnsupervisedFolder
 from model import SparseAutoencoder
 from sklearn.metrics import accuracy_score
 
+from utils import run_cli
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,6 +24,8 @@ def pil_loader(path: str) -> Image.Image:
     with open(path, 'rb') as f:
         img = Image.open(f)
         return img.convert('RGB')
+
+config = run_cli()
 
 class UnsupervisedFolder(DatasetFolder):
     def __init__(
@@ -51,13 +55,8 @@ test_transforms = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.25, 0.25, 0.25))
         ])
-CKPT_PATH = '/home/chandramouli/kaggle/cerenaut/classification/logs/left-right-brain-broad-class/layer=1|lr=0.0001|wd=1.0e-5|bs=32|opt=adam|/checkpoints/epoch=11-val_loss=3.74.ckpt'
 
-# 1.0e-4 acc = 2.375%
-# 1.0e-3 acc = 1.875%
-
-TEST_FOLDER = '/home/chandramouli/Documents/kaggle/CIFAR-100/test'
-dataset = UnsupervisedFolder(root=TEST_FOLDER,
+dataset = UnsupervisedFolder(config['dataset']['test'],
                         transform=test_transforms,
                         loader=pil_loader,)
 
@@ -69,7 +68,7 @@ dataloader = DataLoader(dataset,
 model = SparseAutoencoder(num_input_channels=3,
                             base_channel_size=32,
                             num_classes=100).to(device)
-checkpoint = torch.load(CKPT_PATH)
+checkpoint = torch.load(config['hparams']['model_path'])
 checkpoint['state_dict'] = {k.replace('model.',''):v \
                 for k,v in checkpoint['state_dict'].items()}
 model.load_state_dict(checkpoint['state_dict'])
@@ -96,5 +95,4 @@ outputs = torch.cat(outputs_end, 0).numpy()
 acc1 = accuracy_score(targets, outputs)
 print(acc1)
 
-# Accuracy single model test broad : 0.30303030303030304
-# Accuracy single model test narrow : 0.2191
+

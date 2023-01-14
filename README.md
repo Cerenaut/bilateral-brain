@@ -2,10 +2,10 @@
 
 Guide to the folder structure:
 
-- Classification:
+- classification:
 Train one single hemispheres at a time.
 
-- Hemishperes:
+- hemishperes:
 Combine the hemispheres and train and test only the last layers.
 
 
@@ -14,7 +14,6 @@ Combine the hemispheres and train and test only the last layers.
 Download [CIFAR100](https://www.cs.toronto.edu/~kriz/cifar.html) for python, and put it in your chosen folder.
 
 Modify the paths in `prepare_cifar.py` (at the top of the file), and run the script to create the fine and coarse dataset folders.
-
 
 Each folder has a `config.yaml` which you can use configure the experiment.
 In particular, set the path to dataset and checkpoints there.
@@ -51,3 +50,8 @@ Configure to use the appropriate checkpoints.
 Run ``python trainer.py``
 
 Get the test accuracy with `python test.py`.
+
+
+# TODO remove hardcoding of paths in test.py
+CKPT_PATH
+TEST_FOLDER
