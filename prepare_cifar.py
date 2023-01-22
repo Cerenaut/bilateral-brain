@@ -16,7 +16,7 @@ because pytorch gets the name of the label from the folder
 def unpickle(file):
     import pickle
     with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
+      dict = pickle.load(fo, encoding='bytes')
     return dict
     
 # set paths here

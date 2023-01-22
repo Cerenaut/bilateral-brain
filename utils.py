@@ -20,9 +20,9 @@ import yaml
 PARENT_PATH = Path(__file__).parent.resolve()
 PROJECT_PATH = PARENT_PATH.parent.parent.absolute().resolve()
 
-def run_cli():
-    validate_path('./config.yaml')
-    with open('./config.yaml', 'r') as stream:
+def run_cli(config_path='configs/config.yaml'):
+    validate_path(config_path)
+    with open(config_path, 'r') as stream:
         try:
             config = yaml.safe_load(stream)
         except yaml.YAMLError as exc:

@@ -49,7 +49,8 @@ def main() -> None:
             val_dir=config['dataset']['val_dir'],
             batch_size=config['hparams']['batch_size'])
         trainer.fit(model, datamodule=imdm)
-        shutil.copy('./config.yaml', f'{dest_dir}/config.yaml')
+        shutil.copy(config_path, f'{dest_dir}/config.yaml')
 
 if __name__ == '__main__':
-    main()
+  default_config_path = './configs/config.yaml'
+  main(default_config_path)
