@@ -15,8 +15,8 @@ from supervised import SupervisedLightningModule
 from utils import run_cli, yaml_func
 
 
-def main() -> None:
-    config = run_cli()
+def main(config_path) -> None:
+    config = run_cli(config_path=config_path)
     seeds = config['seeds']
     for seed in seeds:
         if seed is not None:
