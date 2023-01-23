@@ -1,4 +1,4 @@
-torchvision==0.10.0
+torchvision==0.10.0   # needs to be a different version on mac if you want to use the M1 as GPU
 matplotlib==3.4.2
 pytorch_lightning==1.4.1
 lightning_bolts==0.3.4
@@ -9,3 +9,5 @@ Pillow==8.4.0
 PyYAML==6.0
 scikit_learn==1.0.1
 torchmetrics==0.6.0
+opencv-python
+test-tube

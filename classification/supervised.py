@@ -1,20 +1,39 @@
+from argparse import Namespace
 from typing import Optional, Dict, Any
 
 import sys
 sys.path.append('../')
+
 import torch
 import torchvision.utils as vutils
 import torch.nn.functional as F
 from torch import Tensor, nn
 from torch.optim.optimizer import Optimizer
+from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
 
-
-from model import MLP, ResNet9, SparseAutoencoder
-from unsuplrbrain.model import ResNet9Enc
+from models.resnet import resnet18, resnet34
+from models.resnet_v0 import resnet9, invresnet9
 from pytorch_lightning import LightningModule
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 
 from sklearn.metrics import accuracy_score
+
+class WarmUpLR(_LRScheduler):
+    """warmup_training learning rate scheduler
+    Args:
+        optimizer: optimzier(e.g. SGD)
+        total_iters: totoal_iters of warmup phase
+    """
+    def __init__(self, optimizer, total_iters, last_epoch=-1):
+
+        self.total_iters = total_iters
+        super().__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        """we will use the first m batches, and set the learning
+        rate to base_lr * m / total_iters
+        """
+        return [base_lr * self.last_epoch / (self.total_iters + 1e-8) for base_lr in self.base_lrs]
 
 
 class SupervisedLightningModule(LightningModule):
@@ -36,9 +55,8 @@ class SupervisedLightningModule(LightningModule):
         self.save_hyperparameters()
 
         self.config = config
-        self.gpus = self.config['trainer_params']['gpus']
+        
         self.batch_size = self.config['hparams']['batch_size']
-
         self.optim = self.config['hparams']['optimizer']
         self.weight_decay = self.config['hparams']['weight_decay']
 
@@ -48,7 +66,8 @@ class SupervisedLightningModule(LightningModule):
 
         self.k = self.config['hparams']['k']
         self.k_percent = self.config['hparams']['per_k']
-        self.model_path = self.config['hparams']['model_path']
+        if 'model_path' in self.config['hparams'].keys():
+            self.model_path = self.config['hparams']['model_path']
         self._initialize_model()
 
         # compute iters per epoch
@@ -59,9 +78,20 @@ class SupervisedLightningModule(LightningModule):
             self.k = None
         if self.k_percent == 0:
             self.k_percent = None
-
-        self.model = SparseAutoencoder(in_channels=3, 
-                                    num_classes=self.config['hparams']['num_classes'])
+        mydict = {
+                    "mode": "narrow", 
+                    "k": self.k, 
+                    "k_percent":self.k_percent
+                }
+        args = Namespace(**mydict)
+        self.model = invresnet9(args)
+    
+    def _load_model(self):    
+        model_dict = torch.load(self.model_path)['state_dict']
+        model_dict = {k.replace('model.encoder.', ''):v for k,v in model_dict.items() if 'encoder' in k}
+        self.model.load_state_dict(model_dict)
+        for param in self.model.parameters():
+            param.requires_grad = False
     
     def forward(self, x):
         output = self.model(x)
@@ -69,7 +99,7 @@ class SupervisedLightningModule(LightningModule):
         
     def training_step(self, batch, batch_idx):
         img1, y = batch
-        output = self.model(img1)
+        output = self(img1)
         loss_sim = self.ce_loss(output, y)
         loss=loss_sim
         self.log("train loss", loss, on_step=True, on_epoch=False)
@@ -112,12 +142,9 @@ class SupervisedLightningModule(LightningModule):
         self.log('val_acc', acc1)
 
     def configure_optimizers(self):
-        params = []
-        params += list(self.model.parameters())
-        optimizer = torch.optim.Adam(params, 
-            lr=self.learning_rate, weight_decay=self.weight_decay)
-        steps_per_epoch = (len(self.train_dataloader()) \
-                            // self.trainer.accumulate_grad_batches)
-        scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=1,
-                                max_epochs=self.max_epochs)
-        return [optimizer], [scheduler]
+        optimizer = torch.optim.Adam(self.model.parameters(), 
+                                    lr=self.learning_rate, 
+                                    weight_decay=self.weight_decay)
+        return optimizer
+        # scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=1, max_epochs=self.max_epochs)
+        # return [optimizer], [scheduler]

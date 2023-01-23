@@ -57,19 +57,21 @@ class DataModule(pl.LightningDataModule):
         self.num_workers = 6
 
     def setup(self, stage: Optional[str] = None):
+        train_transform = transforms.Compose([
+            transforms.RandomCrop(32, padding=4, padding_mode='reflect'), 
+            transforms.RandomHorizontalFlip(),
+            transforms.Resize(32),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
+        ])
         base_transforms = transforms.Compose([
             transforms.Resize(32),
             transforms.ToTensor(),
             transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
         ])
-        self.mnist_train = [UnsupervisedFolder(
+        self.mnist_train = UnsupervisedFolder(
             root=self.train_dir,
-            transform=base_transforms),
-                UnsupervisedFolder(
-            root=self.train_dir.replace('train', 'val'),
-            transform=base_transforms)]
-        self.mnist_train = ConcatDataset(self.mnist_train)
-        
+            transform=train_transform)
         self.mnist_val = UnsupervisedFolder(
             root=self.val_dir,
             transform=base_transforms)

@@ -11,12 +11,47 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+import yaml
 
 PARENT_PATH = Path(__file__).parent.resolve()
 PROJECT_PATH = PARENT_PATH.parent.parent.absolute().resolve()
+
+def run_cli(config_path='configs/config.yaml'):
+    validate_path(config_path)
+    with open(config_path, 'r') as stream:
+        try:
+            config = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+    return config
+
+def yaml_func(config_param):
+
+    if isinstance(config_param, list):
+        call_list = []
+        local_func = locals().keys()
+        for param in config_param:
+            if param in local_func:
+                call_list.append(locals()[param])
+        return call_list
+    elif isinstance(config_param, dict):
+        call = None
+        global_func = globals().keys()
+        key = config_param['type']
+        del config_param['type']
+        if key in global_func:
+            call = globals()[key](**config_param)
+        return call
+
+def pil_loader(path: str) -> Image.Image:
+    # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
+    with open(path, 'rb') as f:
+        img = Image.open(f)
+        return img.convert('RGB')
 
 def inverse_normalize(img,
                       mean=(0.485, 0.456, 0.406),

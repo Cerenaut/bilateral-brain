@@ -1,0 +1,39 @@
+seeds: [4]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
+evaluate: False
+
+trainer_params:
+  accelerator: null
+  gpus: 1
+  default_root_dir: runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
+  max_epochs: 1
+  log_every_n_steps: 10
+  gradient_clip_val: 10
+
+dataset:
+  train_dir: ../datasets/CIFAR100/train/coarse
+  val_dir: ../datasets/CIFAR100/test/coarse
+  test_dir: ../datasets/CIFAR100/test/coarse
+
+logger:
+  type: TensorBoardLogger
+  save_dir: ./logs/         # logs and checkpoints go here
+  name: logger_name         # customize the name to the run you are doing
+  version: lr=0.0001|opt=adam|
+
+hparams:
+  lr: 1.0e-4
+  weight_decay: 1.0e-3
+  optimizer: adam
+  warmup_epochs: 1
+  batch_size: 256
+  k: 0.9
+  per_k: 0.9
+  num_classes: 100
+  num_workers: 6
+  # model_path: path_to_checkpoint  # source location of specific checkpoint to load
+
+ckpt_callback:
+  save_top_k: 2
+  monitor: val_acc
+  mode: max
+  save_last: True
