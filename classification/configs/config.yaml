@@ -3,7 +3,7 @@ evaluate: False
 
 trainer_params:
   accelerator: null
-  gpus: 0
+  gpus: 1
   default_root_dir: runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
   max_epochs: 1
   log_every_n_steps: 10

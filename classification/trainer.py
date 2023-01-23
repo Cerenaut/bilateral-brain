@@ -39,7 +39,7 @@ def main(config_path) -> None:
             name=config['logger']['name']+f"-seed{seed}",
             version=config['logger']['version'],)
         
-        dest_dir = os.path.join(config['logger']['save_dir'], config['logger']['name']+f"-seed{seed}", f"version_{config['logger']['version']}")
+        dest_dir = os.path.join(config['logger']['save_dir'], config['logger']['name']+f"-seed{seed}", f"{config['logger']['version']}")
 
         trainer = pl.Trainer(**config['trainer_params'],
                             callbacks=[ckpt_callback],
