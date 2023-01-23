@@ -1,3 +1,9 @@
+
+# generated files
+/classification/logs/
+/hemispheres/logs/
+/datasets/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
