@@ -29,6 +29,7 @@ class HemiSphere(Dataset):
     def __init__(
             self,
             root: str,
+            raw_data_path: str,
             transform: Optional[Callable] = None,
             loader: Callable[[str], Any] = pil_loader,
             mode: Optional[str] = 'train',
@@ -44,16 +45,15 @@ class HemiSphere(Dataset):
         for ext in valid_ext:
             self.samples.extend(glob.glob(osp.join(root, '*', f'*{ext}')))
         
-        self._load_coarse_labels()
+        self._load_coarse_labels(raw_data_path)
 
-    def _load_coarse_labels(self):
+    def _load_coarse_labels(self, raw_data_path):
         def unpickle(file):
             import pickle
             with open(file, 'rb') as fo:
                 dict = pickle.load(fo, encoding='bytes')
             return dict
-        data_pre_path = '/home/chandramouli/Downloads/cifar-100-python/'
-        data_path = data_pre_path + self.mode
+        data_path = raw_data_path + self.mode
         data_dict = unpickle(data_path)
         del data_dict[b'data']
         coarse_labels = np.array(data_dict[b'coarse_labels'])
@@ -78,6 +78,7 @@ class EnsembleHemiSphere(Dataset):
     def __init__(
             self,
             root: str,
+            raw_data_path: str,
             transform: Optional[Callable] = None,
             loader: Callable[[str], Any] = pil_loader,
             mode: Optional[str] = 'train',
@@ -100,14 +101,13 @@ class EnsembleHemiSphere(Dataset):
         self.samples = list(set(self.samples).intersection(set(self.images_fname)))
         self._load_coarse_labels()
 
-    def _load_coarse_labels(self):
+    def _load_coarse_labels(self, raw_data_path):
         def unpickle(file):
             import pickle
             with open(file, 'rb') as fo:
                 dict = pickle.load(fo, encoding='bytes')
             return dict
-        data_pre_path = '/path_cifar-100-python/'
-        data_path = data_pre_path + self.mode
+        data_path = raw_data_path + self.mode
         data_dict = unpickle(data_path)
         del data_dict[b'data']
         coarse_labels = np.array(data_dict[b'coarse_labels'])
@@ -133,6 +133,7 @@ class DataModule(pl.LightningDataModule):
     def __init__(self, 
                     train_dir: str = "path/to/dir", 
                     val_dir: str="path/to/dir",
+                    raw_data_dir: str="path/to/dir",
                     batch_size: int = 32,
                     num_workers:int = 4,
                     split: bool = False,
@@ -140,6 +141,7 @@ class DataModule(pl.LightningDataModule):
         super().__init__()
         self.train_dir = train_dir
         self.val_dir = val_dir
+        self.raw_data_dir = raw_data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.split_file = split_file
@@ -161,16 +163,19 @@ class DataModule(pl.LightningDataModule):
         if self.split:
             self.mnist_train = EnsembleHemiSphere(
                 root=self.train_dir,
+                raw_data_path=self.raw_data_dir,
                 transform=train_transforms,
                 split_file=self.split_file)
         else:    
             self.mnist_train = HemiSphere(
-            root=self.train_dir,
-            transform=train_transforms)        
+              root=self.train_dir,
+              raw_data_path=self.raw_data_dir,
+              transform=train_transforms)        
         self.mnist_val = HemiSphere(
-            root=self.val_dir,
-            mode='test',
-            transform=base_transforms)
+              root=self.val_dir,
+              raw_data_path=self.raw_data_dir,
+              mode='test',
+              transform=base_transforms)
 
     def train_dataloader(self):
         return DataLoader(self.mnist_train,

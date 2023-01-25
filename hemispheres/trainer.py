@@ -10,9 +10,12 @@ from argparse import ArgumentParser, Namespace
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TestTubeLogger, TensorBoardLogger
 
-from utils import run_cli, validate_path, yaml_func
 from datamodule import DataModule
 from supervised import SupervisedLightningModule
+
+import sys
+sys.path.append('../')
+from utils import run_cli, validate_path, yaml_func
 
 
 def main() -> None:
@@ -41,15 +44,16 @@ def main() -> None:
 
         logger = TensorBoardLogger(
             config['logger']['save_dir'],
-            name=config['logger']['name'] + f"-seed{config['seed']}",
+            name=config['logger']['name'] + f"-seed{seed}",
             version=config['logger']['version'],)
+
         trainer = pl.Trainer(**config['trainer_params'],
                             callbacks=[ckpt_callback],
-                            logger=logger,
-                            )
+                            logger=logger)
         imdm = DataModule(
             train_dir=config['dataset']['train_dir'],
             val_dir=config['dataset']['test_dir'],
+            raw_data_dir=config['dataset']['raw_data_dir'],
             batch_size=config['hparams']['batch_size'],
             num_workers=config['hparams']['num_workers'],
             split=False,

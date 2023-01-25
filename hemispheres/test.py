@@ -8,6 +8,7 @@ from tqdm import tqdm
 from torchvision import transforms
 from torch.utils.data import DataLoader, Dataset
 
+from datamodule import HemiSphere
 from model import SparseAutoencoder, Combiner
 from sklearn.metrics import accuracy_score
 from utils import pil_loader, run_cli
@@ -21,55 +22,7 @@ IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
 
 config = run_cli()
 
-class HemiSphere(Dataset):
-    def __init__(
-            self,
-            root: str,
-            transform: Optional[Callable] = None,
-            loader: Callable[[str], Any] = pil_loader,
-            mode: Optional[str] = 'train',
-            is_valid_file: Optional[Callable[[str], bool]] = None,
-    ):
-        super(HemiSphere, self).__init__()
-        self.transform = transform
-        self.loader = loader
-        self.mode = mode
-        valid_ext = IMG_EXTENSIONS if is_valid_file is None else None
-        
-        self.samples = []
-        for ext in valid_ext:
-            self.samples.extend(glob.glob(osp.join(root, '*', f'*{ext}')))
-        
-        self._load_coarse_labels()
 
-    def _load_coarse_labels(self):
-        def unpickle(file):
-            import pickle
-            with open(file, 'rb') as fo:
-                dict = pickle.load(fo, encoding='bytes')
-            return dict
-        data_pre_path = config['raw_data_dir']
-        data_path = data_pre_path + self.mode
-        data_dict = unpickle(data_path)
-        del data_dict[b'data']
-        coarse_labels = np.array(data_dict[b'coarse_labels'])
-        filenames = data_dict[b'filenames']
-        filenames = [x.decode("utf-8")for x in filenames]
-        self.coarse_label_dict = dict(zip(filenames, coarse_labels))
-
-    def __getitem__(self, index):
-        path = self.samples[index]
-        sample = self.loader(path)
-        if self.transform is not None:
-            sample = self.transform(sample)
-        target = int(path.split('/')[-2])
-        coarselabel = self.coarse_label_dict[path.split('/')[-1]]
-        data = {"image": sample, "fine": target, "coarse": coarselabel}
-        return data
-    
-    def __len__(self):
-        return len(self.samples)
-    
 test_transforms = transforms.Compose([
             transforms.Resize(32),
             transforms.ToTensor(),

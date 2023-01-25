@@ -1,4 +1,4 @@
-seed: 1
+seeds: [4]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
 evaluate: False
 
 trainer_params:
@@ -13,7 +13,7 @@ dataset:
   train_dir: ../datasets/CIFAR100/train/coarse
   val_dir: ../datasets/CIFAR100/test/coarse
   test_dir: ../datasets/CIFAR100/test/coarse
-  raw_data_dir: ../../datasets/cifar-100-python/
+  raw_data_dir: ../../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:
   type: TensorBoardLogger
