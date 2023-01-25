@@ -47,7 +47,7 @@ As an example, here are step by step instructions to train Left on specific clas
 
 This will specialize the left for specific and the right for general classes, using supervised training. As in the paper, you can then apply additional asymmetries to enhance specializations such as sparsity or having hemispheres with asymmetric layer widths.
 
-#### 1. Train Left on specific classes
+#### 1. Train Left on specific/narrow classes (fine labels)
 
 Go to `classification` folder.
 
@@ -60,9 +60,9 @@ Then run:
 ``python trainer.py``
 
 You can get the test accuracy with `python test.py`.
-Note the name of the checkpoint to load from the training run.
+First set the correct checkpoint path in the config.
 
-#### 2. Train Right on general classes
+#### 2. Train Right on general/broad classes (coarse labels)
 
 Then do it all again on general labels to train the Right hemisphere.
 

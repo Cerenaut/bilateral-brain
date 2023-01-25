@@ -49,7 +49,7 @@ test_transforms = transforms.Compose([
             transforms.Normalize((0.5, 0.5, 0.5), (0.25, 0.25, 0.25))
         ])
 
-dataset = UnsupervisedFolder(config['dataset']['test'],
+dataset = UnsupervisedFolder(config['dataset']['test_dir'],
                         transform=test_transforms,
                         loader=pil_loader,)
 

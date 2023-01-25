@@ -2,7 +2,10 @@ import torch
 import torch.nn as nn
 
 import math
-import utils
+
+import sys
+sys.path.append('../')
+from utils import truncated_normal_
 
 from pl_bolts.models.autoencoders.components \
     import resnet18_decoder, resnet18_encoder
