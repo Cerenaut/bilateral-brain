@@ -103,8 +103,7 @@ def conv_block(in_channels,
     else:
         sparse_layer=nn.Identity()
     layers = [nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            #   act_fn(),
-            #   sparse_layer, # sparsity models
+              sparse_layer, # sparsity models
               nn.BatchNorm2d(out_channels),
               act_fn(),]
     if pool: layers.append(nn.MaxPool2d(2))

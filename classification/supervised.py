@@ -81,10 +81,10 @@ class SupervisedLightningModule(LightningModule):
         mydict = {
                     "mode": "narrow", 
                     "k": self.k, 
-                    "k_percent":self.k_percent
+                    "k_percent": self.k_percent
                 }
         args = Namespace(**mydict)
-        self.model = invresnet9(args)
+        self.model = resnet9(args)
     
     def _load_model(self):    
         model_dict = torch.load(self.model_path)['state_dict']

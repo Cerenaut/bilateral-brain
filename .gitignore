@@ -1,5 +1,6 @@
 
 # generated files
+/logs
 /classification/logs/
 /hemispheres/logs/
 /datasets/
@@ -133,4 +134,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-classification/logs/coarse-seed4/lr=0.0001|opt=adam|/events.out.tfevents.1674430135.Rodney.25650.1

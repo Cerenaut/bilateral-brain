@@ -47,7 +47,8 @@ def main(config_path) -> None:
         imdm = DataModule(
             train_dir=config['dataset']['train_dir'],
             val_dir=config['dataset']['val_dir'],
-            batch_size=config['hparams']['batch_size'])
+            batch_size=config['hparams']['batch_size'],
+            num_workers=config['hparams']['num_workers'])
         trainer.fit(model, datamodule=imdm)
         shutil.copy(config_path, f'{dest_dir}/config.yaml')
 
