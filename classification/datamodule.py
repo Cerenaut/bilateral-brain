@@ -77,12 +77,14 @@ class DataModule(pl.LightningDataModule):
             transform=base_transforms)
 
     def train_dataloader(self):
+        print("aaaaaa")
         return DataLoader(self.mnist_train, 
                             shuffle=True,
                             batch_size=self.batch_size, 
                             num_workers=self.num_workers)
 
     def val_dataloader(self):
+        print("bbbbbbb")
         return DataLoader(self.mnist_val,
                             shuffle=False,
                             batch_size=self.batch_size,

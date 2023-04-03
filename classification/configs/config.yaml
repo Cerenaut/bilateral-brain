@@ -18,7 +18,7 @@ logger:
   type: TensorBoardLogger
   save_dir: ./logs/         # logs and checkpoints go here
   name: logger_name         # customize the name to the run you are doing
-  version: lr=0.0001|opt=adam|
+  version: lr=0.0001
 
 hparams:
   lr: 1.0e-4

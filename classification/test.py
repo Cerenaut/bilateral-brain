@@ -58,9 +58,11 @@ dataloader = DataLoader(dataset,
                             batch_size=32, 
                             num_workers=4)
 
-model = SparseAutoencoder(num_input_channels=3,
-                            base_channel_size=32,
-                            num_classes=100).to(device)
+model = SparseAutoencoder(in_channels=3,
+        
+                            num_classes=100,
+                            enc_out_dim=64).to(device)
+
 checkpoint = torch.load(config['hparams']['model_path'])
 checkpoint['state_dict'] = {k.replace('model.',''):v \
                 for k,v in checkpoint['state_dict'].items()}

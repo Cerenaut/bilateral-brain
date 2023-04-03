@@ -6,8 +6,6 @@ import math
 import numpy as np
 from argparse import Namespace
 
-import sys
-
 class Reshape(nn.Module):
     def __init__(self, shape):
         super(Reshape, self).__init__()
@@ -79,20 +77,15 @@ class SparseConv(nn.Module):
 
     def filter(self, x):  # Applied to a batch.
         """ """
-        
         k_per_map = math.ceil(self.k * x.shape[2] * x.shape[3]) 
         x = x.permute(1, 0, 2, 3)
         inp = x.reshape(x.shape[0] * x.shape[1], -1)
         inp = self.batch_topk(inp, k_per_map)
-        
         inp = inp.reshape(x.shape[0], x.shape[1] * x.shape[2] * x.shape[3])
         k_factor = math.ceil(self.k_percent * k_per_map * x.shape[1])
         inp = self.batch_topk(inp, k_factor)
-       
         inp = inp.reshape(x.shape[0], x.shape[1], x.shape[2], x.shape[3])
         inp = inp.permute(1, 0, 2, 3)
-       
-        
         return inp
 
     def forward(self, x):
@@ -110,8 +103,7 @@ def conv_block(in_channels,
     else:
         sparse_layer=nn.Identity()
     layers = [nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            #   act_fn(),
-               sparse_layer, # sparsity models
+              sparse_layer, # sparsity models
               nn.BatchNorm2d(out_channels),
               act_fn(),]
     if pool: layers.append(nn.MaxPool2d(2))
@@ -291,7 +283,6 @@ class ResNet9Wrapper(nn.Module):
 
     def forward(self, x):
         """[summary]
-
         Args:
             x ([type]): [description]
         """
@@ -347,7 +338,6 @@ class BicamNet(nn.Module):
 
     def forward(self, x):
         """[summary]
-
         Args:
             x ([type]): [description]
         """
@@ -378,10 +368,8 @@ def invresnet9(args):
 
 def load_model(model, ckpt_path):
     """[summary]
-
     Args:
         ckpt_path ([type]): [description]
-
     Returns:
         [type]: [description]
     """
@@ -392,10 +380,8 @@ def load_model(model, ckpt_path):
 
 def load_feat_model(model, ckpt_path):
     """[summary]
-
     Args:
         ckpt_path ([type]): [description]
-
     Returns:
         [type]: [description]
     """
@@ -406,7 +392,6 @@ def load_feat_model(model, ckpt_path):
 
 def freeze_params(model):
     """[summary]
-
     Args:
         model ([type]): [description]
     """
@@ -425,10 +410,8 @@ def bicameral(args):
 
 def load_bicam_model(model, ckpt_path):
     """[summary]
-
     Args:
         ckpt_path ([type]): [description]
-
     Returns:
         [type]: [description]
     """

@@ -12,6 +12,9 @@ from pytorch_lightning.loggers import TensorBoardLogger
 
 from datamodule import DataModule
 from supervised import SupervisedLightningModule
+
+import sys
+sys.path.append('../')
 from utils import run_cli, yaml_func
 
 
@@ -32,7 +35,9 @@ def main(config_path) -> None:
         if config['trainer_params']['default_root_dir'] == "None":
             config['trainer_params']['default_root_dir'] = osp.dirname(__file__)
         
+        
         model = SupervisedLightningModule(config)
+        
 
         logger = TensorBoardLogger(
             save_dir=config['logger']['save_dir'],
