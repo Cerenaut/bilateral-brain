@@ -38,18 +38,18 @@ def main(config_path) -> None:
             save_dir=config['logger']['save_dir'],
             name=config['logger']['name']+f"-seed{seed}",
             version=config['logger']['version'],)
-        
-        dest_dir = os.path.join(config['logger']['save_dir'], config['logger']['name']+f"-seed{seed}", f"{config['logger']['version']}")
 
         trainer = pl.Trainer(**config['trainer_params'],
                             callbacks=[ckpt_callback],
                             logger=logger)
         imdm = DataModule(
             train_dir=config['dataset']['train_dir'],
-            val_dir=config['dataset']['val_dir'],
+            val_dir=config['dataset']['test_dir'],
             batch_size=config['hparams']['batch_size'],
             num_workers=config['hparams']['num_workers'])
         trainer.fit(model, datamodule=imdm)
+
+        dest_dir = os.path.join(config['logger']['save_dir'], config['logger']['name']+f"-seed{seed}", f"{config['logger']['version']}")
         shutil.copy(config_path, f'{dest_dir}/config.yaml')
 
 if __name__ == '__main__':

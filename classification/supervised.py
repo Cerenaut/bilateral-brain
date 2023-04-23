@@ -64,8 +64,11 @@ class SupervisedLightningModule(LightningModule):
         self.warmup_epochs = self.config['hparams']['warmup_epochs']
         self.max_epochs = self.config['trainer_params']['max_epochs']
 
+        self.mode = self.config['hparams']['mode']
+
         self.k = self.config['hparams']['k']
         self.k_percent = self.config['hparams']['per_k']
+        
         if 'model_path' in self.config['hparams'].keys():
             self.model_path = self.config['hparams']['model_path']
         self._initialize_model()
@@ -79,7 +82,7 @@ class SupervisedLightningModule(LightningModule):
         if self.k_percent == 0:
             self.k_percent = None
         mydict = {
-                    "mode": "narrow", 
+                    "mode": self.mode, 
                     "k": self.k, 
                     "k_percent": self.k_percent
                 }
