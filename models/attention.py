@@ -25,7 +25,7 @@ class PreActResidualUnit(nn.Module):
 
     def __init__(self, in_channels, out_channels, stride):
         super().__init__()
-
+        print("hello")
         bottleneck_channels = int(out_channels / 4)
         self.residual_function = nn.Sequential(
             #1x1 conv
