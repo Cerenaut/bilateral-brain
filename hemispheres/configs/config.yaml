@@ -10,9 +10,9 @@ trainer_params:
   accumulate_grad_batches: 2
 
 dataset:
-  train_dir: ../datasets/CIFAR100/train/coarse
-  val_dir: ../datasets/CIFAR100/test/coarse
-  test_dir: ../datasets/CIFAR100/test/coarse
+  train_dir: ../datasets/CIFAR100/train/fine
+  val_dir: ../datasets/CIFAR100/test/fine
+  test_dir: ../datasets/CIFAR100/test/fine
   raw_data_dir: ../../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:
@@ -22,6 +22,7 @@ logger:
   version: layer=only1|lr=1.0e-4|wd=1.0e-5|
 
 hparams:
+  mode: 'narrow'            # narrow | broad | both | feature
   lr: 1.0e-4
   weight_decay: 1.0e-5
   optimizer: adam

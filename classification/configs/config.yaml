@@ -5,14 +5,14 @@ trainer_params:
   accelerator: null
   gpus: 1
   default_root_dir: runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 4
-  log_every_n_steps: 1
-  gradient_clip_val: 1
+  max_epochs: 100
+  log_every_n_steps: 10
+  gradient_clip_val: 10
 
 dataset:
-  train_dir: datasets/CIFAR100/train/coarse
-  val_dir: datasets/CIFAR100/test/coarse
-  test_dir: datasets/CIFAR100/test/coarse
+  train_dir: ../datasets/CIFAR100/train/coarse
+  val_dir: ../datasets/CIFAR100/test/coarse
+  test_dir: ../datasets/CIFAR100/test/coarse
 
 logger:
   type: TensorBoardLogger
@@ -21,15 +21,16 @@ logger:
   version: lr=0.0001|opt=adam|
 
 hparams:
+  mode: 'narrow'            # narrow | broad | both | feature
   lr: 1.0e-4
   weight_decay: 1.0e-3
   optimizer: adam
   warmup_epochs: 1
-  batch_size: 2
+  batch_size: 256
   k: 0.8
   per_k: 0.8
   num_classes: 100
-  num_workers: 1
+  num_workers: 6
   # model_path: path_to_checkpoint  # source location of specific checkpoint to load
 
 ckpt_callback:

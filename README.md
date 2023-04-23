@@ -71,6 +71,17 @@ Then do it all again on general labels to train the Right hemisphere.
 Go to `hemispheres` folder.
 Configure to use the appropriate checkpoints to load the Left and Right hemispheres.
 
+Set the dataset paths in the config to point to the 'fine' folders and include the path to the raw files.
+The DataModule will then pick up 'fine' labels from the image names and the 'coarse' labels from the raw files.
+For example:
+
+```
+dataset:
+  train_dir: ../datasets/CIFAR100/train/fine
+  val_dir: ../datasets/CIFAR100/test/fine
+  test_dir: ../datasets/CIFAR100/test/fine
+```
+
 This will assemble the hemispheres and add a MLP head.
 
 Run ``python trainer.py``

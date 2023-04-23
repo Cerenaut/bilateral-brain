@@ -119,7 +119,7 @@ def conv_trans_block(in_channels,
     if pool: layers.append(nn.Upsample(scale_factor=2, mode='nearest'))
     return nn.Sequential(*layers)
 
-class ResNet99(nn.Module):
+class ResNet9(nn.Module):
     def __init__(self,
                     mode='feature',
                     k=None, 

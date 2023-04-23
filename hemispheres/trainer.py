@@ -2,6 +2,7 @@ import os
 import sys
 import yaml
 import optuna
+import shutil
 import os.path as osp
 import pytorch_lightning as pl
 
@@ -18,13 +19,12 @@ sys.path.append('../')
 from utils import run_cli, validate_path, yaml_func
 
 
-def main() -> None:
-    config = run_cli()
+def main(config_path) -> None:
+    config = run_cli(config_path=config_path)
     seeds = config['seeds']
     for seed in seeds:
         if seed is not None:
             pl.seed_everything(seed)
-
 
         ckpt_callback = ModelCheckpoint(
             filename='{epoch}-{val_loss:.2f}',
@@ -38,7 +38,7 @@ def main() -> None:
         
         lr = config['hparams']['lr']
         
-        config['logger']['version'] =f'layer=only1|lr={lr}|'
+        config['logger']['version'] = f'layer=only1|lr={lr}|'
         
         model = SupervisedLightningModule(config)
 
@@ -60,6 +60,10 @@ def main() -> None:
             split_file=None)
         trainer.fit(model, datamodule=imdm)
 
+        dest_dir = os.path.join(config['logger']['save_dir'], config['logger']['name']+f"-seed{seed}", f"{config['logger']['version']}")
+        shutil.copy(config_path, f'{dest_dir}/config.yaml')
+
 
 if __name__ == '__main__':
-    main()
+    default_config_path = './configs/config.yaml'
+    main(default_config_path)
