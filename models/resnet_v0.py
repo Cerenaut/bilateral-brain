@@ -359,7 +359,7 @@ def net(args):
     return ResNet9Wrapper(args.arch, args.mode)
 
 def resnet9(args):
-    """ return a ResNet 18 object
+    """ return a ResNet 9 object
     """
     return ResNet9(args.mode, args.k, args.k_percent)
 
