@@ -55,6 +55,7 @@ Configure the experiment by modifying the `config.yaml` file in the `config/` fo
 
 - use specific labels (`config/dataset/`), and
 - change the name of the experiments (`config/logger/name`) 
+- update the 'mode' hparam appropriately: 'narrow' for fine labels, and 'broad' for coarse labels
 
 Then run:
 ``python trainer.py``
@@ -70,6 +71,8 @@ Then do it all again on general labels to train the Right hemisphere.
 
 Go to `hemispheres` folder.
 Configure to use the appropriate checkpoints to load the Left and Right hemispheres.
+
+- update the 'mode' hparam appropriately to 'both', to use both 'fine' and 'coarse' labels
 
 Set the dataset paths in the config to point to the 'fine' folders and include the path to the raw files.
 The DataModule will then pick up 'fine' labels from the image names and the 'coarse' labels from the raw files.
