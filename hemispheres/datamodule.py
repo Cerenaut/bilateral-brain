@@ -68,6 +68,7 @@ class HemiSphere(Dataset):
             sample = self.transform(sample)
         target = int(path.split('/')[-2])
         coarselabel = self.coarse_label_dict[path.split('/')[-1]]
+        # print("labels --------- " + str(target) + ', ' + str(coarselabel))
         data = {"image": sample, "fine": target, "coarse": coarselabel}
         return data
     
