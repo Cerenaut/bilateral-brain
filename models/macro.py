@@ -128,6 +128,10 @@ class UnilateralNet(nn.Module):
         if self.unilat_mode not in check_list():
             raise Exception('Mode of unilateral network does not match')
         
+        # TODO now that this is in macro, it differs from what we did previously
+        # when it was in resnet as well, and we were training a single hemisphere
+        # there was no Dropout
+        # so we should parameterise this and put in config, then we can replicate
         if self.unilat_mode == 'fine' or self.mode == 'both':        
             self.fine_head = nn.Sequential(
                                 nn.Dropout(0.6),
