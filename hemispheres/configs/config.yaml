@@ -22,7 +22,10 @@ logger:
   version: layer=only1|lr=1.0e-4|wd=1.0e-5|
 
 hparams:
-  mode: 'narrow'            # narrow | broad | both | feature
+  mode: 'feature'           # mode of hemisphere, which labels? [narrow | broad | both | feature]
+  bicam_mode: 'both'        # mode of bicam architecture, which labels? same options as above
+  carch: 'resnet9'          # architecture used for 'coarse' hemisphere e.g. resnet9 (see other options in models)
+  farch: 'resnet9'          # architecture used for 'fine' hemisphere
   lr: 1.0e-4
   weight_decay: 1.0e-5
   optimizer: adam
@@ -34,7 +37,7 @@ hparams:
   narrow_k: 0.9
   narrow_per_k: 0.9
   model_path_fine: /path/to/narrow_model_checkpoint  # path to narrow model checkpoint
-  model_path_broad: /path/to/broad_model_checkpoint  # path to broad model checkpoint
+  model_path_coarse: /path/to/broad_model_checkpoint  # path to broad model checkpoint
 
 ckpt_callback:
   save_top_k: 2

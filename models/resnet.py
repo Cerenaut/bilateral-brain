@@ -320,6 +320,8 @@ class BicamNet(nn.Module):
             freeze_params(self.broad)
         if ffreeze_params:
             freeze_params(self.narrow)
+
+        # add the 
         self.fcombiner = nn.Sequential(
                             nn.Linear(1024, 100)
                             )

@@ -59,7 +59,7 @@ model_narrow.load_state_dict(checkpoint['state_dict'])
 model_narrow.eval()
 
 # Broad Class Model
-checkpoint = torch.load(config['hparams']['model_path_broad'])
+checkpoint = torch.load(config['hparams']['model_path_coarse'])
 checkpoint['state_dict'] = {k:v for k,v in checkpoint['state_dict'].items()\
      if "model_broad" in k}
 checkpoint['state_dict'] = {k.replace('model_broad.',''):v \
