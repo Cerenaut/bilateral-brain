@@ -113,7 +113,7 @@ class ResNet(nn.Module):
             self.cfc = nn.Linear(in_features=512, out_features=20, bias=True)
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
-        """make resnet layers(by layer i didnt mean this 'layer' was the
+        """make resnet layers (by layer I didnt mean this 'layer' was the
         same as a neuron netowork layer, ex. conv layer), one layer may
         contain more than one residual block
 
@@ -246,7 +246,6 @@ class Net(nn.Module):
         elif self.mode == 'both':
             self.ffc = nn.Linear(in_features=512, out_features=100, bias=True)
             self.cfc = nn.Linear(in_features=512, out_features=20, bias=True)
-         
 
     def forward(self, x):
         out = self.conv(x)

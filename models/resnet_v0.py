@@ -193,7 +193,6 @@ class ResNet9(nn.Module):
             out = self.fc(out)
             return out
 
-
 class InvertedResNet9(nn.Module):
     def __init__(self, 
                     mode='feature',

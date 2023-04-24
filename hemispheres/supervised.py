@@ -47,6 +47,9 @@ class SupervisedLightningModule(LightningModule):
         self.learning_rate = self.config['hparams']['lr']
         self.warmup_epochs = self.config['hparams']['warmup_epochs']
         self.max_epochs = self.config['trainer_params']['max_epochs']
+
+        self.mode = self.config['hparams']['mode']
+
         if 'narrow_k' in self.config['hparams']:
             self.narrow_k = self.config['hparams']['narrow_k']
         if 'narrow_per_k' in self.config['hparams']:
@@ -60,8 +63,6 @@ class SupervisedLightningModule(LightningModule):
         self.ce_loss = nn.CrossEntropyLoss()
         
     def _initialize_model(self):
-        """
-        """
         mydict={ 
             "carch": "resnet9",
             "farch": "invresnet9", 
@@ -78,7 +79,7 @@ class SupervisedLightningModule(LightningModule):
         self.k = None
         self.k_percent = None
         mydict = {
-                    "mode": "both", 
+                    "mode": self.mode, 
                     "k": self.k, 
                     "k_percent":self.k_percent
                 }
@@ -88,7 +89,27 @@ class SupervisedLightningModule(LightningModule):
     def _step(self, img1):
         narrow, broad = self.model(img1)
         return narrow, broad
+
+    def training_step(self, batch, batch_idx):
+        img1, finey, coarsey = batch['image'], batch['fine'], batch['coarse']
+        narrowt, broadt = self._step(img1)
+        loss_narr = self.ce_loss(narrowt, finey) 
+        loss_broad = self.ce_loss(broadt, coarsey)
+        loss = loss_narr + loss_broad
+
+        self.log('train narrow loss', loss_narr)
+        self.log('train broad loss', loss_broad)
+        self.log("train_loss", loss, on_step=False,
+                 on_epoch=True, sync_dist=True)        
+        return {'loss':loss, 
+                'output':((narrowt.detach().cpu(), finey.detach().cpu()), 
+                        (broadt.detach().cpu(), coarsey.detach().cpu()))}
     
+    def training_epoch_end(self, output: Any) -> None:
+        acc_narr, acc_broad = self._epoch_end(output)
+        self.log('train_acc_narr', acc_narr)
+        self.log('train_acc_broad', acc_broad)
+
     def _epoch_end(self, output: Any) -> Any:
         narrowts = []
         fineys = []
@@ -114,27 +135,7 @@ class SupervisedLightningModule(LightningModule):
         acc_narr = accuracy_score(fineys, narrowts)
         acc_broad = accuracy_score(coarseys, broadts)
         return acc_narr, acc_broad
-
-    def training_step(self, batch, batch_idx):
-        img1, finey, coarsey = batch['image'], batch['fine'], batch['coarse']
-        narrowt, broadt = self._step(img1)
-        loss_narr = self.ce_loss(narrowt, finey) 
-        loss_broad = self.ce_loss(broadt, coarsey)
-        loss = loss_narr + loss_broad
-
-        self.log('train narrow loss', loss_narr)
-        self.log('train broad loss', loss_broad)
-        self.log("train_loss", loss, on_step=False,
-                 on_epoch=True, sync_dist=True)        
-        return {'loss':loss, 
-                'output':((narrowt.detach().cpu(), finey.detach().cpu()), 
-                        (broadt.detach().cpu(), coarsey.detach().cpu()))}
     
-    def training_epoch_end(self, output: Any) -> None:
-        acc_narr, acc_broad = self._epoch_end(output)
-        self.log('train_acc_narr', acc_narr)
-        self.log('train_acc_broad', acc_broad)
-
     def validation_step(self, batch, batch_idx):
         img1, finey, coarsey = batch['image'], batch['fine'], batch['coarse']
         narrowt, broadt = self._step(img1)
@@ -154,7 +155,6 @@ class SupervisedLightningModule(LightningModule):
         acc_narr, acc_broad = self._epoch_end(output)
         self.log('val_acc_narr', acc_narr)
         self.log('val_acc_broad', acc_broad)
-
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(params=self.model.parameters(),
