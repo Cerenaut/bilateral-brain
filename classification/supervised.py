@@ -11,8 +11,7 @@ from torch import Tensor, nn
 from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
 
-from models.resnet import resnet18, resnet34
-from models.resnet_v0 import resnet9, invresnet9
+from models.macro import unilateral
 from pytorch_lightning import LightningModule
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 
@@ -65,12 +64,16 @@ class SupervisedLightningModule(LightningModule):
         self.max_epochs = self.config['trainer_params']['max_epochs']
 
         self.mode = self.config['hparams']['mode']
+        self.arch = self.config['hparams']['arch']
 
         self.k = self.config['hparams']['k']
         self.k_percent = self.config['hparams']['per_k']
         
         if 'model_path' in self.config['hparams'].keys():
             self.model_path = self.config['hparams']['model_path']
+        else:
+            self.model_path = None
+            
         self._initialize_model()
 
         # compute iters per epoch
@@ -83,18 +86,14 @@ class SupervisedLightningModule(LightningModule):
             self.k_percent = None
         mydict = {
                     "mode": self.mode, 
+                    "arch": self.arch,
+                    "model_path": self.model_path,
+                    "freeze_params": False,
                     "k": self.k, 
                     "k_percent": self.k_percent
                 }
         args = Namespace(**mydict)
-        self.model = resnet9(args)
-    
-    def _load_model(self):    
-        model_dict = torch.load(self.model_path)['state_dict']
-        model_dict = {k.replace('model.encoder.', ''):v for k,v in model_dict.items() if 'encoder' in k}
-        self.model.load_state_dict(model_dict)
-        for param in self.model.parameters():
-            param.requires_grad = False
+        self.model = unilateral(args)
     
     def forward(self, x):
         output = self.model(x)

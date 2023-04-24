@@ -21,7 +21,8 @@ logger:
   version: lr=0.0001|opt=adam|
 
 hparams:
-  mode: 'narrow'            # narrow | broad | both | feature
+  arch: 'resnet9'
+  mode: 'fine'            # fine | coarse | both | feature
   lr: 1.0e-4
   weight_decay: 1.0e-3
   optimizer: adam

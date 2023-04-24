@@ -200,43 +200,13 @@ class InvertedResNet9(nn.Module):
         out = self.res2(out) + out
         return out
 
-class ResNet9Wrapper(nn.Module):
-    """
-    A Residual network.
-    """
-    def __init__(self,
-                    arch: str, 
-                    mode: str = 'feature',
-                    model_path = None,
-                    freeze_params: bool = False,):
-        super(ResNet9, self).__init__()
-        self.model = globals()[arch](mode=mode)
-        if model_path is not None:
-            self.model.load_state_dict(load_model(model_path))
-        if freeze_params:
-            freeze_params(self.model)
-
-    def forward(self, x):
-        """[summary]
-
-        Args:
-            x ([type]): [description]
-        """
-        out = self.model(x)
-        return out
-
-def net(args):
-    """[summary]
-    """
-    return ResNet9Wrapper(args.arch, args.mode)
-
 def resnet9(args):
     """ return a ResNet 9 object
     """
-    return ResNet9(args.mode, args.k, args.k_percent)
+    return ResNet9(args.k, args.k_percent)
 
 def invresnet9(args):
     """ return a ResNet 18 object
     """
-    return InvertedResNet9(args.mode, args.k, args.k_percent)
+    return InvertedResNet9(args.k, args.k_percent)
 

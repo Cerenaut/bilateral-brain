@@ -9,8 +9,7 @@ import torch.nn.functional as F
 from torch import Tensor, nn
 from torch.optim.optimizer import Optimizer
 
-from models.resnet import unicameral, resnet18, resnet34
-from models.resnet_v0 import bicameral, resnet9
+from models.macro import bilateral, unilateral
 from pytorch_lightning import LightningModule
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 
@@ -49,6 +48,7 @@ class SupervisedLightningModule(LightningModule):
         self.max_epochs = self.config['trainer_params']['max_epochs']
 
         self.mode = self.config['hparams']['mode']
+        self.arch = self.config['hparams']['arch']
 
         if 'narrow_k' in self.config['hparams']:
             self.narrow_k = self.config['hparams']['narrow_k']
@@ -65,31 +65,33 @@ class SupervisedLightningModule(LightningModule):
         self.ce_loss = nn.CrossEntropyLoss()
         
     def _initialize_model(self):
-
-        # TODO add ability to set sparsity in hemispheres
-
         mydict = {
+            "mode": self.config["hparams"]["mode"],
             "carch": self.config["hparams"]["carch"],
             "farch": self.config["hparams"]["farch"],
-            "bicam_mode": self.config["hparams"]["bicam_mode"],
             "cmodel_path": self.config['hparams']['model_path_coarse'],
             "fmodel_path": self.config['hparams']['model_path_fine'],
             "cfreeze_params": True,
             "ffreeze_params": True,
+            "narrow_k": self.narrow_k,
+            "narrow_per_k": self.narrow_k_percent,
+            "broad_k": self.broad_k,
+            "broad_per_k": self.broad_k_percent
             }
         args = Namespace(**mydict)
-        self.model = bicameral(args)
+        self.model = bilateral(args)
     
     def _initialize_ensemble_model(self):
         self.k = None
         self.k_percent = None
         mydict = {
                     "mode": self.mode, 
+                    "arch": self.arch,
                     "k": self.k, 
                     "k_percent":self.k_percent
                 }
         args = Namespace(**mydict)
-        self.model = resnet9(args)
+        self.model = unilateral(args)
     
     def _step(self, img1):
         narrow, broad = self.model(img1)

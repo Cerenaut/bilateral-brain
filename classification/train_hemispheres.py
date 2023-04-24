@@ -31,7 +31,7 @@ def main():
 
     # customize params
     doc['logger']['name'] = label_type
-    doc['hparams']['mode'] = 'narrow' if label_type == 'fine' else 'broad'
+    doc['hparams']['mode'] = label_type
     doc['dataset']['train_dir'] = data[label_type]['train']
     doc['dataset']['val_dir'] = data[label_type]['test']
     doc['dataset']['test_dir'] = data[label_type]['test']
