@@ -58,17 +58,22 @@ class SupervisedLightningModule(LightningModule):
             self.broad_k = self.config['hparams']['broad_k']
         if 'broad_per_k' in self.config['hparams']:
             self.broad_k_percent = self.config['hparams']['broad_per_k']
-        # self._initialize_model()
-        self._initialize_ensemble_model()
+
+        # TODO add config param to specify model or ensemble model
+        self._initialize_model()
+        # self._initialize_ensemble_model()
         self.ce_loss = nn.CrossEntropyLoss()
         
     def _initialize_model(self):
-        mydict={ 
-            "carch": "resnet9",
-            "farch": "invresnet9", 
-            "mode": "feature",
-            "cmodel_path": "/home/chandramouli/kaggle/cerenaut/classification/logs/left-right-broad-sparsity-0.9-linear/res9_512-fc20|lr=1.0e-4|/checkpoints/epoch=97-val_acc=0.77.ckpt",
-            "fmodel_path": "/home/chandramouli/kaggle/cerenaut/classification/logs/narrow-pyramid-sparsity-seed0/lr=0.0001|opt=adam|/checkpoints/epoch=99-val_acc=0.61.ckpt",
+
+        # TODO add ability to set sparsity in hemispheres
+
+        mydict = {
+            "carch": self.config["hparams"]["carch"],
+            "farch": self.config["hparams"]["farch"],
+            "bicam_mode": self.config["hparams"]["bicam_mode"],
+            "cmodel_path": self.config['hparams']['model_path_coarse'],
+            "fmodel_path": self.config['hparams']['model_path_fine'],
             "cfreeze_params": True,
             "ffreeze_params": True,
             }
