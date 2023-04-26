@@ -43,54 +43,51 @@ class SupervisedLightningModule(LightningModule):
     ):
         """
         Args:
-            batch_size: the batch size
-            num_samples: num samples in the dataset
             warmup_epochs: epochs to warmup the lr for
             lr: the optimizer learning rate
             opt_weight_decay: the optimizer weight decay
-            loss_temperature: the loss temperature
         """
         super().__init__()
         self.save_hyperparameters()
 
         self.config = config
         
-        self.batch_size = self.config['hparams']['batch_size']
-        self.optim = self.config['hparams']['optimizer']
+        # self.optim = self.config['hparams']['optimizer']
         self.weight_decay = self.config['hparams']['weight_decay']
 
         self.learning_rate = self.config['hparams']['lr']
-        self.warmup_epochs = self.config['hparams']['warmup_epochs']
+        # self.warmup_epochs = self.config['hparams']['warmup_epochs']
         self.max_epochs = self.config['trainer_params']['max_epochs']
-
-        self.mode = self.config['hparams']['mode']
-        self.arch = self.config['hparams']['arch']
-
-        self.k = self.config['hparams']['k']
-        self.k_percent = self.config['hparams']['per_k']
-        
-        if 'model_path' in self.config['hparams'].keys():
-            self.model_path = self.config['hparams']['model_path']
-        else:
-            self.model_path = None
             
         self._initialize_model()
 
         # compute iters per epoch
         self.ce_loss = nn.CrossEntropyLoss()
     
+    """
+    Get hparam value from config
+    Specify if it must be explicit with `is_must` and if not, use to `default`
+    """    
+    def _get_hparam(self, hparam_key, is_must=False, default=None):
+        if hparam_key in self.config["hparams"]:
+            return self.config["hparams"][hparam_key]
+        elif is_must:
+            raise ValueError("hparam_key {} not found in config".format(hparam_key))
+        else:
+            return default
+
     def _initialize_model(self):
         if self.k == 0:
             self.k = None
         if self.k_percent == 0:
             self.k_percent = None
         mydict = {
-                    "mode": self.mode, 
-                    "arch": self.arch,
-                    "model_path": self.model_path,
+                    "mode": self._get_hparam("mode", is_must=True), 
+                    "arch": self._get_hparam("arch", is_must=True),
+                    "model_path": self._get_hparam("model_path"),
                     "freeze_params": False,
-                    "k": self.k, 
-                    "k_percent": self.k_percent
+                    "k": self._get_hparam("k"),
+                    "k_percent": self._get_hparam("k_percent"),
                 }
         args = Namespace(**mydict)
         self.model = unilateral(args)

@@ -18,7 +18,8 @@ class BilateralNet(nn.Module):
                  cmodel_path = None, fmodel_path = None,
                  cfreeze_params: bool = True, ffreeze_params: bool = True,
                  fine_k: float = None, fine_per_k: float = None,
-                 coarse_k: float = None, coarse_per_k: float = None):
+                 coarse_k: float = None, coarse_per_k: float = None,
+                 dropout: float = 1.0):
         """ Initialize BicamNet
 
         Args:
@@ -58,15 +59,15 @@ class BilateralNet(nn.Module):
                 freeze_params(self.broad)
 
         # add heads
-        out_dim = self.broad.res2[-1][0].out_channels + self.narrow.res2[-1][0].out_channels
+        out_dim = self.fine_hemi.res2[-1][0].out_channels + self.coarse_hemi.res2[-1][0].out_channels
         self.fine_hemi = nn.Sequential(
-                            nn.Dropout(0.6),
-                            nn.Linear(out_dim, 100)
-                            )
+                            nn.Flatten(),
+                            nn.Dropout(dropout),
+                            nn.Linear(out_dim, 100))
         self.coarse_hemi = nn.Sequential(
-                            nn.Dropout(0.6),
-                            nn.Linear(out_dim, 20)
-                            )
+                            nn.Flatten(),
+                            nn.Dropout(dropout),
+                            nn.Linear(out_dim, 20))
 
     def forward(self, x):
         """[summary]
@@ -95,7 +96,8 @@ class UnilateralNet(nn.Module):
                  arch: str,
                  model_path: str,
                  freeze_params: bool,
-                 k: float, k_percent: float):
+                 k: float, k_percent: float,
+                 dropout: float = 1.0):
         """ Initialize UnilateralNet
 
         Args:
@@ -129,20 +131,16 @@ class UnilateralNet(nn.Module):
         if self.mode not in check_list():
             raise Exception('Mode of unilateral network does not match')
         
-        # TODO now that this is in macro, it differs from what we did previously
-        # when it was in resnet as well, and we were training a single hemisphere
-        # there was no Dropout
-        # so we should parameterise this and put in config, then we can replicate
         if self.mode == 'fine' or self.mode == 'both':        
             self.fine_head = nn.Sequential(
-                                nn.Dropout(0.6),
-                                nn.Linear(out_dim, 100)
-                                )
+                                nn.Flatten(),
+                                nn.Dropout(dropout),
+                                nn.Linear(out_dim, 100))
         if self.mode == 'coarse' or self.mode == 'both':                    
             self.coarse_head = nn.Sequential(
-                                nn.Dropout(0.6),
-                                nn.Linear(out_dim, 20)
-                                )
+                                nn.Flatten(),
+                                nn.Dropout(dropout),
+                                nn.Linear(out_dim, 20))
 
     def forward(self, x):
         """[summary]
@@ -182,8 +180,8 @@ def bilateral(args):
                         args.fmodel_path, args.cmodel_path,
                         args.cfreeze_params, args.ffreeze_params,
                         args.narrow_k, args.narrow_per_k,
-                        args.broad_k ,args.broad_per_k)
-
+                        args.broad_k ,args.broad_per_k,
+                        args.dropout)
 
 def unilateral(args):
     """[summary]
@@ -192,7 +190,8 @@ def unilateral(args):
                          args.arch,
                          args.model_path, 
                          args.freeze_params,
-                         args.k, args.k_percent)
+                         args.k, args.k_percent,
+                         args.dropout)
 
 def load_model(model, ckpt_path):
     """[summary]

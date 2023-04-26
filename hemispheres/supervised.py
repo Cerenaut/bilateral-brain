@@ -37,46 +37,47 @@ class SupervisedLightningModule(LightningModule):
         self.save_hyperparameters()
 
         self.config = config
-        self.gpus = self.config['trainer_params']['gpus']
-        self.batch_size = self.config['hparams']['batch_size']
+        # self.gpus = self.config['trainer_params']['gpus']
+        # self.batch_size = self.config['hparams']['batch_size']
 
         self.optim = self.config['hparams']['optimizer']
         self.weight_decay = self.config['hparams']['weight_decay']
 
         self.learning_rate = self.config['hparams']['lr']
-        self.warmup_epochs = self.config['hparams']['warmup_epochs']
-        self.max_epochs = self.config['trainer_params']['max_epochs']
-
-        self.mode = self.config['hparams']['mode']
-        self.arch = self.config['hparams']['arch']
-
-        if 'narrow_k' in self.config['hparams']:
-            self.narrow_k = self.config['hparams']['narrow_k']
-        if 'narrow_per_k' in self.config['hparams']:
-            self.narrow_k_percent = self.config['hparams']['narrow_per_k']
-        if 'broad_k' in self.config['hparams']:
-            self.broad_k = self.config['hparams']['broad_k']
-        if 'broad_per_k' in self.config['hparams']:
-            self.broad_k_percent = self.config['hparams']['broad_per_k']
+        # self.warmup_epochs = self.config['hparams']['warmup_epochs']
+        # self.max_epochs = self.config['trainer_params']['max_epochs']
 
         # TODO add config param to specify model or ensemble model
         self._initialize_model()
         # self._initialize_ensemble_model()
         self.ce_loss = nn.CrossEntropyLoss()
+
+    """
+    Get hparam value from config
+    Specify if it must be explicit with `is_must` and if not, use to `default`
+    """    
+    def _get_hparam(self, hparam_key, is_must=False, default=None):
+        if hparam_key in self.config["hparams"]:
+            return self.config["hparams"][hparam_key]
+        elif is_must:
+            raise ValueError("hparam_key {} not found in config".format(hparam_key))
+        else:
+            return default
         
     def _initialize_model(self):
         mydict = {
-            "mode": self.config["hparams"]["mode"],
-            "carch": self.config["hparams"]["carch"],
-            "farch": self.config["hparams"]["farch"],
-            "cmodel_path": self.config['hparams']['model_path_coarse'],
-            "fmodel_path": self.config['hparams']['model_path_fine'],
+            "mode": self._get_hparam("mode", is_must=True),
+            "carch": self._get_hparam("carch", is_must=True),
+            "farch": self._get_hparam("harch", is_must=True),
+            "cmodel_path": self._get_hparam("model_path_coarse"),
+            "fmodel_path": self._get_hparam("fmodel_path_fine"),
             "cfreeze_params": True,
             "ffreeze_params": True,
-            "narrow_k": self.narrow_k,
-            "narrow_per_k": self.narrow_k_percent,
-            "broad_k": self.broad_k,
-            "broad_per_k": self.broad_k_percent
+            "narrow_k": self._get_hparam("narrow_k"),
+            "narrow_per_k": self._get_hparam("narrow_k_percent"),
+            "broad_k": self._get_hparam("broad_k"),
+            "broad_per_k": self._get_hparam("broad_k_percent"),
+            "dropout": self._get_hparam("dropout", is_must=False, default=1.0),
             }
         args = Namespace(**mydict)
         self.model = bilateral(args)
