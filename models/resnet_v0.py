@@ -95,7 +95,7 @@ def conv_block(in_channels,
                 k_percent=None, 
                 act_fn = nn.GELU, 
                 pool=False):
-    if k is not None and k_percent is not None:
+    if (k != 0 and k is not None) and (k_percent != 0 and k_percent is not None):
         sparse_layer = SparseConv(k, k_percent)
     else:
         sparse_layer=nn.Identity()

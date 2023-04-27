@@ -20,12 +20,12 @@ class BilateralNet(nn.Module):
                  fine_k: float = None, fine_per_k: float = None,
                  coarse_k: float = None, coarse_per_k: float = None,
                  dropout: float = 1.0):
-        """ Initialize BicamNet
+        """ Initialize BilateralNet
 
         Args:
             carch (str): architecture for coarse labels
             farch (str): architecture for fine labels
-            bicam_mode (str): where to get the outputs from
+            mode (str): where to get the outputs from
                                 both = classifications from both heads
                                 feature = features from both hemispheres (input to heads)
         """
@@ -34,37 +34,32 @@ class BilateralNet(nn.Module):
         self.mode = mode
         
         # create the hemispheres
-        self.fine_hemi = globals()[farch](
-                                    Namespace(**
-                                        {
-                                            "k": fine_k,
-                                            "k_percent": fine_per_k,
-                                        }))
+        self.fine_hemi = globals()[farch](Namespace(**{"k": fine_k, "k_percent": fine_per_k,}))
+        self.coarse_hemi = globals()[farch](Namespace(**{"k": coarse_k, "k_percent": coarse_per_k,}))            
 
-        self.coarse_hemi = globals()[carch](
-                                    Namespace(**
-                                        {
-                                            "k": coarse_k,
-                                            "k_percent": coarse_per_k,
-                                        }))
-            
         # load the saved trained parameters, and freeze from further training
         if fmodel_path is not None:
-            self.narrow.load_state_dict(load_model(fmodel_path))
+            str = "------- Load fine hemisphere"
+            load_hemi_model(self.fine_hemi, fmodel_path)
             if ffreeze_params:
-                freeze_params(self.narrow)
+                freeze_params(self.fine_hemi)
+                str += ",      ---> and freeze"
+            print(str)
         if cmodel_path is not None:
-            self.broad.load_state_dict(load_model(cmodel_path))
+            str = "------- Load coarse hemisphere"
+            load_hemi_model(self.coarse_hemi, cmodel_path)
             if cfreeze_params:
-                freeze_params(self.broad)
+                freeze_params(self.coarse_hemi)
+                str += ",      ---> and freeze"
+            print(str)
 
         # add heads
         out_dim = self.fine_hemi.res2[-1][0].out_channels + self.coarse_hemi.res2[-1][0].out_channels
-        self.fine_hemi = nn.Sequential(
+        self.fine_head = nn.Sequential(
                             nn.Flatten(),
                             nn.Dropout(dropout),
                             nn.Linear(out_dim, 100))
-        self.coarse_hemi = nn.Sequential(
+        self.coarse_head = nn.Sequential(
                             nn.Flatten(),
                             nn.Dropout(dropout),
                             nn.Linear(out_dim, 20))
@@ -75,12 +70,12 @@ class BilateralNet(nn.Module):
         Args:
             x ([type]): [description]
         """
-        fembed = self.narrow(x)
-        cembed = self.broad(x)
+        fembed = self.fine_hemi(x)
+        cembed = self.coarse_hemi(x)
         embed = torch.cat([fembed, cembed], axis=1)
         if self.mode == 'both':
-            f_out = self.fine_hemi(embed)
-            c_out = self.coarse_hemi(embed)
+            f_out = self.fine_head(embed)
+            c_out = self.coarse_head(embed)
             return f_out, c_out
         elif self.mode == 'feature':
             return embed
@@ -112,12 +107,7 @@ class UnilateralNet(nn.Module):
         self.mode = mode
         
         # create the hemispheres
-        self.hemisphere = globals()[arch](
-                                Namespace(**
-                                    {
-                                        "k": k,
-                                        "k_percent": k_percent,
-                                    }))
+        self.hemisphere = globals()[arch](Namespace(**{"k": k, "k_percent": k_percent,}))
 
         # load the saved trained parameters, and freeze from further training
         if model_path is not None:
@@ -178,9 +168,9 @@ def bilateral(args):
     return BilateralNet(args.mode,
                         args.farch, args.carch, 
                         args.fmodel_path, args.cmodel_path,
-                        args.cfreeze_params, args.ffreeze_params,
-                        args.narrow_k, args.narrow_per_k,
-                        args.broad_k ,args.broad_per_k,
+                        args.ffreeze_params, args.cfreeze_params,
+                        args.fine_k, args.fine_per_k,
+                        args.coarse_k ,args.coarse_per_k,
                         args.dropout)
 
 def unilateral(args):
@@ -202,12 +192,30 @@ def load_model(model, ckpt_path):
     Returns:
         [type]: [description]
     """
+
+    # TODO this version is used by gracam, so will need to update with new names
+
     sdict = torch.load(ckpt_path)['state_dict']
+
     model_dict = {k.replace('model.', '').replace('encoder.', ''):v for k,v in sdict.items()}
     model.load_state_dict(model_dict)
     return model
 
-def load_bilat_model(model, ckpt_path):
+def load_hemi_model(model, ckpt_path):
+    """[summary]
+
+    Args:
+        ckpt_path ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    sdict = torch.load(ckpt_path)['state_dict']
+    model_dict = {k.replace('model.', '').replace('hemisphere.', ''):v for k,v in sdict.items()}
+    model.load_state_dict(model_dict, strict=False)
+    return model
+
+def load_bicam_model(model, ckpt_path):
     """[summary]
 
     Args:
@@ -217,27 +225,13 @@ def load_bilat_model(model, ckpt_path):
         [type]: [description]
     """
 
-    #TODO have to update these names, according to new consistent naming
+    # TODO I belive this is used to load the bilateral model. Both hemispheres and heads.
     sdict = torch.load(ckpt_path)['state_dict']
     model_dict = {k.replace('model_', '').replace('encoder.', ''):v for k,v in sdict.items() if not 'combiner' in k and not 'fc' in k}
     fc_dict = {k.replace('combiner.', '').replace('broad.', 'ccombiner.').replace('narrow.', 'fcombiner.'):v for k,v in sdict.items() if 'combiner' in k}
     model_dict.update(fc_dict)
     model.load_state_dict(model_dict)
     return model
-
-def load_unicam_model(ckpt_path):
-    """[summary]
-
-    Args:
-        ckpt_path ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    sdict = torch.load(ckpt_path)
-    # ['state_dict']
-    model_dict = {k.replace('model.', ''):v for k,v in sdict.items() if 'conv' in k}
-    return model_dict
 
 def load_feat_model(model, ckpt_path):
     """[summary]
@@ -249,7 +243,7 @@ def load_feat_model(model, ckpt_path):
         [type]: [description]
     """
 
-    #TODO have to update these names, according to new consistent naming
+    # TODO not sure what encoder is for ... fix when need to use this
     sdict = torch.load(ckpt_path)['state_dict']
     model_dict = {k.replace('model.', '').replace('encoder.', ''):v for k,v in sdict.items() if 'fc' not in k}
     model.load_state_dict(model_dict)

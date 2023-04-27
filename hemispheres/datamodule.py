@@ -134,6 +134,7 @@ class DataModule(pl.LightningDataModule):
     def __init__(self, 
                     train_dir: str = "path/to/dir", 
                     val_dir: str="path/to/dir",
+                    test_dir: str="path/to/dir",
                     raw_data_dir: str="path/to/dir",
                     batch_size: int = 32,
                     num_workers:int = 4,
@@ -142,6 +143,7 @@ class DataModule(pl.LightningDataModule):
         super().__init__()
         self.train_dir = train_dir
         self.val_dir = val_dir
+        self.test_dir = test_dir
         self.raw_data_dir = raw_data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -190,6 +192,12 @@ class DataModule(pl.LightningDataModule):
                             batch_size=self.batch_size,
                             num_workers=self.num_workers)
 
+    def test_dataloader(self):
+        return DataLoader(self.mnist_test,
+                            shuffle=False,
+                            batch_size=self.batch_size,
+                            num_workers=self.num_workers)
+    
 if __name__ == '__main__':
     base_transforms = transforms.Compose([
             transforms.Resize(32),

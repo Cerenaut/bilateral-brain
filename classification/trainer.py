@@ -4,6 +4,7 @@ import optuna
 import shutil
 import os.path as osp
 import pytorch_lightning as pl
+from datetime import datetime
 
 from pathlib import Path
 from argparse import ArgumentParser, Namespace
@@ -23,7 +24,7 @@ def main(config_path) -> None:
             pl.seed_everything(seed)
 
         ckpt_callback = ModelCheckpoint(
-            filename='{epoch}-{val_acc:.2f}',
+            filename='{epoch}-{val_acc:.3f}',
             **config['ckpt_callback'],
         )
         if 'callbacks' in config['trainer_params']:
@@ -34,10 +35,12 @@ def main(config_path) -> None:
         
         model = SupervisedLightningModule(config)
 
-        logger = TensorBoardLogger(
-            save_dir=config['logger']['save_dir'],
-            name=config['logger']['name']+f"-seed{seed}",
-            version=config['logger']['version'],)
+        save_dir = config['save_dir']
+        exp_name = f"{config['exp_name']}-{config['hparams']['arch']}-{config['hparams']['mode']}"
+        date_time = datetime.now().strftime("%Y%m%d%H%M%S")
+        version = f"{date_time}-seed{seed}"
+
+        logger = TensorBoardLogger(save_dir=save_dir, name=exp_name, version=version)
 
         trainer = pl.Trainer(**config['trainer_params'],
                             callbacks=[ckpt_callback],
@@ -45,12 +48,20 @@ def main(config_path) -> None:
         imdm = DataModule(
             train_dir=config['dataset']['train_dir'],
             val_dir=config['dataset']['test_dir'],
+            test_dir=config['dataset']['test_dir'],
             batch_size=config['hparams']['batch_size'],
             num_workers=config['hparams']['num_workers'])
         trainer.fit(model, datamodule=imdm)
 
-        dest_dir = os.path.join(config['logger']['save_dir'], config['logger']['name']+f"-seed{seed}", f"{config['logger']['version']}")
+        dest_dir = os.path.join(save_dir, exp_name, version)
         shutil.copy(config_path, f'{dest_dir}/config.yaml')
+
+        if config["evaluate"]:
+            acc = trainer.test(datamodule=imdm)
+
+            # write the results to a file
+            with open(f'{dest_dir}/results.txt', 'a') as f:
+                f.write(f'{acc}\n')
 
 if __name__ == '__main__':
   default_config_path = './configs/config.yaml'

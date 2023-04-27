@@ -52,42 +52,25 @@ class SupervisedLightningModule(LightningModule):
 
         self.config = config
         
-        # self.optim = self.config['hparams']['optimizer']
         self.weight_decay = self.config['hparams']['weight_decay']
-
         self.learning_rate = self.config['hparams']['lr']
         # self.warmup_epochs = self.config['hparams']['warmup_epochs']
-        self.max_epochs = self.config['trainer_params']['max_epochs']
+        # self.max_epochs = self.config['trainer_params']['max_epochs']
             
         self._initialize_model()
 
         # compute iters per epoch
         self.ce_loss = nn.CrossEntropyLoss()
-    
-    """
-    Get hparam value from config
-    Specify if it must be explicit with `is_must` and if not, use to `default`
-    """    
-    def _get_hparam(self, hparam_key, is_must=False, default=None):
-        if hparam_key in self.config["hparams"]:
-            return self.config["hparams"][hparam_key]
-        elif is_must:
-            raise ValueError("hparam_key {} not found in config".format(hparam_key))
-        else:
-            return default
 
     def _initialize_model(self):
-        if self.k == 0:
-            self.k = None
-        if self.k_percent == 0:
-            self.k_percent = None
         mydict = {
-                    "mode": self._get_hparam("mode", is_must=True), 
-                    "arch": self._get_hparam("arch", is_must=True),
-                    "model_path": self._get_hparam("model_path"),
+                    "mode": self.config["hparams"].get("mode"),
+                    "arch": self.config["hparams"].get("arch"),
+                    "model_path": self.config["hparams"].get("model_path"),
                     "freeze_params": False,
-                    "k": self._get_hparam("k"),
-                    "k_percent": self._get_hparam("k_percent"),
+                    "k": self.config["hparams"].get("k"),
+                    "k_percent": self.config["hparams"].get("k_percent"),
+                    "dropout": self.config["hparams"].get("dropout", 1.0)
                 }
         args = Namespace(**mydict)
         self.model = unilateral(args)
@@ -95,50 +78,59 @@ class SupervisedLightningModule(LightningModule):
     def forward(self, x):
         output = self.model(x)
         return output
-        
-    def training_step(self, batch, batch_idx):
-        img1, y = batch
+
+    def _eval_step(self, batch, batch_idx):
+        img1, label = batch
         output = self(img1)
-        loss_sim = self.ce_loss(output, y)
-        loss=loss_sim
+        loss_sim = self.ce_loss(output, label)
+        loss = loss_sim
+        return loss, output, label
+
+    def _calc_accuracy(self, outputs, train_outputs=False):
+        label_arr = []
+        output_arr = []
+        for out in outputs:
+            if train_outputs:
+                output, label = out['output']
+            else:
+                output, label = out
+            _, ind = torch.max(output, 1)
+            label_arr.append(label)
+            output_arr.append(ind)
+        label_arr = torch.cat(label_arr, 0).numpy()
+        output_arr = torch.cat(output_arr, 0).numpy()
+        acc1 = accuracy_score(label_arr, output_arr)
+        return acc1
+
+    def training_step(self, batch, batch_idx):
+        loss, output, label = self._eval_step(batch, batch_idx)
+
         self.log("train loss", loss, on_step=True, on_epoch=False)
-        return {'loss':loss, 'output':(output.detach().cpu(), y.detach().cpu())}
+        return {'loss':loss, 'output':(output.detach().cpu(), label.detach().cpu())}
     
-    def training_epoch_end(self, output: Any) -> None:
-        targets = []
-        outputs = []
-        for out in output:
-            labels, target = out['output']
-            _, ind = torch.max(labels, 1)
-            targets.append(target)
-            outputs.append(ind)
-        targets = torch.cat(targets, 0).numpy()
-        outputs = torch.cat(outputs, 0).numpy()
-        acc1 = accuracy_score(targets, outputs)
-        self.log('train_acc', acc1)
+    def training_epoch_end(self, outputs: Any) -> None:
+        acc = self._calc_accuracy(outputs, train_outputs=True)
+        self.log('train_acc', acc)
 
     def validation_step(self, batch, batch_idx):
-        img1, y = batch
-        output = self(img1)
-        loss_sim = self.ce_loss(output, y)
-        loss = loss_sim
-
-        self.log("val_loss", loss, on_step=False,
+        loss, output, t = self._eval_step(batch, batch_idx)
+        self.log('val_loss', loss, on_step=False, 
                  on_epoch=True, sync_dist=True)
-        return (output.detach().cpu(), y.detach().cpu())
-    
-    def validation_epoch_end(self, output: Any) -> None:
-        targets = []
-        outputs = []
-        for out in output:
-            labels, target = out
-            _, ind = torch.max(labels, 1)
-            targets.append(target)
-            outputs.append(ind)
-        targets = torch.cat(targets, 0).numpy()
-        outputs = torch.cat(outputs, 0).numpy()
-        acc1 = accuracy_score(targets, outputs)
-        self.log('val_acc', acc1)
+        return (output.detach().cpu(), t.detach().cpu())
+
+    def validation_epoch_end(self, outputs: Any) -> None:
+        acc = self._calc_accuracy(outputs)
+        self.log('val_acc', acc)
+
+    def test_step(self, batch, batch_idx):
+        loss, output, t = self._eval_step(batch, batch_idx)
+        self.log('test_loss', loss, on_step=False, 
+                 on_epoch=True, sync_dist=True)
+        return (output.detach().cpu(), t.detach().cpu())
+
+    def test_epoch_end(self, outputs: Any) -> None:
+        acc = self._calc_accuracy(outputs)
+        self.log('test_acc', acc)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters(), 

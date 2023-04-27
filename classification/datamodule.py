@@ -49,11 +49,13 @@ class DataModule(pl.LightningDataModule):
     def __init__(self, 
                     train_dir: str = "path/to/dir", 
                     val_dir: str="path/to/dir",
+                    test_dir: str="path/to/dir",
                     batch_size: int = 32,
                     num_workers: int = 1):
         super().__init__()
         self.train_dir = train_dir
         self.val_dir = val_dir
+        self.test_dir = test_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
 
@@ -76,7 +78,10 @@ class DataModule(pl.LightningDataModule):
         self.mnist_val = UnsupervisedFolder(
             root=self.val_dir,
             transform=base_transforms)
-
+        self.mnist_test = UnsupervisedFolder(
+            root=self.test_dir,
+            transform=base_transforms)
+        
     def train_dataloader(self):
         return DataLoader(self.mnist_train, 
                             shuffle=True,
@@ -85,6 +90,12 @@ class DataModule(pl.LightningDataModule):
 
     def val_dataloader(self):
         return DataLoader(self.mnist_val,
+                            shuffle=False,
+                            batch_size=self.batch_size,
+                            num_workers=self.num_workers)
+
+    def test_dataloader(self):
+        return DataLoader(self.mnist_test,
                             shuffle=False,
                             batch_size=self.batch_size,
                             num_workers=self.num_workers)

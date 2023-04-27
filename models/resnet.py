@@ -207,7 +207,7 @@ class ResidualBlock(nn.Module):
         out += residual
         return out
 
-
+# bicam from resnet_v0.py was used 
 def load_bicam_model(ckpt_path):
     """[summary]
 
@@ -222,25 +222,3 @@ def load_bicam_model(ckpt_path):
     model_dict = {k.replace('model.', ''):v for k,v in sdict.items() if 'conv' in k}
     return model_dict
 
-def load_unicam_model(ckpt_path):
-    """[summary]
-
-    Args:
-        ckpt_path ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    sdict = torch.load(ckpt_path)
-    # ['state_dict']
-    model_dict = {k.replace('model.', ''):v for k,v in sdict.items() if 'conv' in k}
-    return model_dict
-
-def freeze_params(model):
-    """[summary]
-
-    Args:
-        model ([type]): [description]
-    """
-    for param in model.parameters():
-        param.requires_grad = False

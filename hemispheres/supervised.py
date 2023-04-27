@@ -37,12 +37,8 @@ class SupervisedLightningModule(LightningModule):
         self.save_hyperparameters()
 
         self.config = config
-        # self.gpus = self.config['trainer_params']['gpus']
-        # self.batch_size = self.config['hparams']['batch_size']
 
-        self.optim = self.config['hparams']['optimizer']
         self.weight_decay = self.config['hparams']['weight_decay']
-
         self.learning_rate = self.config['hparams']['lr']
         # self.warmup_epochs = self.config['hparams']['warmup_epochs']
         # self.max_epochs = self.config['trainer_params']['max_epochs']
@@ -51,36 +47,29 @@ class SupervisedLightningModule(LightningModule):
         self._initialize_model()
         # self._initialize_ensemble_model()
         self.ce_loss = nn.CrossEntropyLoss()
-
-    """
-    Get hparam value from config
-    Specify if it must be explicit with `is_must` and if not, use to `default`
-    """    
-    def _get_hparam(self, hparam_key, is_must=False, default=None):
-        if hparam_key in self.config["hparams"]:
-            return self.config["hparams"][hparam_key]
-        elif is_must:
-            raise ValueError("hparam_key {} not found in config".format(hparam_key))
-        else:
-            return default
-        
+ 
     def _initialize_model(self):
         mydict = {
-            "mode": self._get_hparam("mode", is_must=True),
-            "carch": self._get_hparam("carch", is_must=True),
-            "farch": self._get_hparam("harch", is_must=True),
-            "cmodel_path": self._get_hparam("model_path_coarse"),
-            "fmodel_path": self._get_hparam("fmodel_path_fine"),
-            "cfreeze_params": True,
-            "ffreeze_params": True,
-            "narrow_k": self._get_hparam("narrow_k"),
-            "narrow_per_k": self._get_hparam("narrow_k_percent"),
-            "broad_k": self._get_hparam("broad_k"),
-            "broad_per_k": self._get_hparam("broad_k_percent"),
-            "dropout": self._get_hparam("dropout", is_must=False, default=1.0),
+            "mode": self.config["hparams"]["mode"],
+            "farch": self.config["hparams"].get("farch", None),
+            "carch": self.config["hparams"].get("carch", None),
+            "fmodel_path": self.config["hparams"].get("model_path_fine"),
+            "cmodel_path": self.config["hparams"].get("model_path_coarse"),
+            "ffreeze_params": self.config["hparams"].get("ffreeze"),
+            "cfreeze_params": self.config["hparams"].get("cfreeze"),
+            "fine_k": self.config["hparams"].get("fine_k"),
+            "fine_per_k": self.config["hparams"].get("fine_per_k"),
+            "coarse_k": self.config["hparams"].get("coarse_k"),
+            "coarse_per_k": self.config["hparams"].get("coarse_per_k"),
+            "dropout": self.config["hparams"].get("dropout", 1.0),
             }
         args = Namespace(**mydict)
-        self.model = bilateral(args)
+
+        macro_arch = self.config["hparams"].get(self.config["hparams"]["macro_arch"], None)
+        if macro_arch == 'bilateral' | macro_arch == None:
+            self.model = bilateral(args)
+        else:
+            self.model = unilateral(args)
     
     def _initialize_ensemble_model(self):
         self.k = None
@@ -114,9 +103,9 @@ class SupervisedLightningModule(LightningModule):
                         (broadt.detach().cpu(), coarsey.detach().cpu()))}
     
     def training_epoch_end(self, output: Any) -> None:
-        acc_narr, acc_broad = self._epoch_end(output)
-        self.log('train_acc_narr', acc_narr)
-        self.log('train_acc_broad', acc_broad)
+        acc_fine, acc_coarse = self._epoch_end(output)
+        self.log('train_acc_fine', acc_fine)
+        self.log('train_acc_coarse', acc_coarse)
 
     def _epoch_end(self, output: Any) -> Any:
         narrowts = []
@@ -143,26 +132,38 @@ class SupervisedLightningModule(LightningModule):
         acc_narr = accuracy_score(fineys, narrowts)
         acc_broad = accuracy_score(coarseys, broadts)
         return acc_narr, acc_broad
-    
-    def validation_step(self, batch, batch_idx):
-        img1, finey, coarsey = batch['image'], batch['fine'], batch['coarse']
-        narrowt, broadt = self._step(img1)
-        loss_narr = self.ce_loss(narrowt, finey) 
-        loss_broad = self.ce_loss(broadt, coarsey)
-        loss = loss_narr + loss_broad
 
-        self.log('val narrow loss', loss_narr)
-        self.log('val broad loss', loss_broad)
-        self.log("val_loss", loss, on_step=False,
+    def _eval_step(self, batch, batch_idx, loss_name):
+        img1, t_fine, t_coarse = batch['image'], batch['fine'], batch['coarse']
+        y_fine, y_coarse = self._step(img1)
+        loss_narr = self.ce_loss(y_fine, t_fine) 
+        loss_broad = self.ce_loss(y_coarse, t_coarse)
+        loss = loss_narr + loss_broad
+        
+        self.log(f'{loss_name}_fine', loss_narr)
+        self.log(f'{loss_name}_coarse', loss_broad)
+        self.log(f'{loss_name}', loss, on_step=False,
                  on_epoch=True, sync_dist=True)
 
-        return ((narrowt.detach().cpu(), finey.detach().cpu()), 
-                        (broadt.detach().cpu(), coarsey.detach().cpu()))
+        return ((y_fine.detach().cpu(), y_coarse.detach().cpu()), 
+                        (t_fine.detach().cpu(), t_coarse.detach().cpu()))
 
-    def validation_epoch_end(self, output: Any) -> None:
-        acc_narr, acc_broad = self._epoch_end(output)
-        self.log('val_acc_narr', acc_narr)
-        self.log('val_acc_broad', acc_broad)
+
+    def validation_step(self, batch, batch_idx):
+        return self._eval_step(batch, batch_idx, 'val_loss')
+
+    def validation_epoch_end(self, outputs: Any) -> None:
+        acc_fine, acc_coarse = self._epoch_end(outputs, acc_name='test_acc')
+        self.log(f'val_acc_fine', acc_fine)
+        self.log(f'val_acc_coarse', acc_coarse)        
+
+    def test_step(self, batch, batch_idx):
+        return self._eval_step(batch, batch_idx, 'test_loss')
+
+    def test_epoch_end(self, outputs: Any) -> None:
+        acc_fine, acc_coarse = self._epoch_end(outputs, acc_name='test_acc')
+        self.log(f'test_acc_fine', acc_fine)
+        self.log(f'test_acc_coarse', acc_coarse)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(params=self.model.parameters(),
