@@ -1,12 +1,14 @@
-seeds: [2]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
-evaluate: False
+seeds: [8]       # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
+evaluate: True
+save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
+exp_name: unilateral
 
 trainer_params:
   accelerator: null
   gpus: 1
-  default_root_dir: runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 100
-  log_every_n_steps: 10
+  default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
+  max_epochs: 1
+  log_every_n_steps: 2
   gradient_clip_val: 10
 
 dataset:
@@ -16,21 +18,16 @@ dataset:
 
 logger:
   type: TensorBoardLogger
-  save_dir: ./logs/         # logs and checkpoints go here
-  name: logger_name         # customize the name to the run you are doing
-  version: lr=0.0001|opt=adam|
 
 hparams:
   arch: 'resnet9'
-  mode: 'fine'            # fine | coarse | both | feature
+  mode: 'fine'              # fine | coarse | both | feature
   lr: 1.0e-4
   weight_decay: 1.0e-3
-  optimizer: adam
   warmup_epochs: 1
   batch_size: 256
-  k: 0.8
-  per_k: 0.8
-  num_classes: 100
+  k: 0.0
+  per_k: 0.0
   num_workers: 6
   # model_path: path_to_checkpoint  # source location of specific checkpoint to load
 
@@ -39,3 +36,17 @@ ckpt_callback:
   monitor: val_acc
   mode: max
   save_last: True
+
+
+
+# **** classification
+# unilateral, 1 head
+#     train/test hem + head together, load whole architecture chkpnts
+#
+# **** hemispheres
+# unilateral, 2 heads
+#     train/test hem(s) + head(s) together, load whole architecture chkpnts
+#
+# bilateral, 2 heads
+#     train/test hem(s) + head(s) together, load whole architecture chkpnts, load hemisphere chkpnts
+#
