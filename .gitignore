@@ -1,6 +1,7 @@
 
 # generated files
 /logs
+/runs
 /classification/logs/
 /hemispheres/logs/
 /datasets/
@@ -134,3 +135,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+classification/configs/config-coarse.yaml
