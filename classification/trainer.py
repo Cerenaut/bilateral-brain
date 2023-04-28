@@ -1,10 +1,12 @@
 import os
 import sys
+import yaml
 import optuna
 import shutil
 import os.path as osp
 import pytorch_lightning as pl
 from datetime import datetime
+import numpy as np
 
 from pathlib import Path
 from argparse import ArgumentParser, Namespace
@@ -19,6 +21,8 @@ from utils import run_cli, yaml_func
 def main(config_path) -> None:
     config = run_cli(config_path=config_path)
     seeds = config['seeds']
+    runs = []         # one for each seed
+    accuracies = []   # one for each seed
     for seed in seeds:
         if seed is not None:
             pl.seed_everything(seed)
@@ -57,11 +61,34 @@ def main(config_path) -> None:
         shutil.copy(config_path, f'{dest_dir}/config.yaml')
 
         if config["evaluate"]:
-            acc = trainer.test(datamodule=imdm)
+            result = trainer.test(datamodule=imdm)
 
-            # write the results to a file
-            with open(f'{dest_dir}/results.txt', 'a') as f:
-                f.write(f'{acc}\n')
+            rdict = {
+                'seed': seed,
+                'result': result
+            }
+            runs.append(rdict)
+            
+            acc = result[0]['test_acc']
+            accuracies.append(acc)
+
+        accs = np.array(accuracies)
+        mean = accs.mean()
+        stddev = accs.std()
+
+        results = {
+            'summary': 
+                {
+                    'mean': str(mean),
+                    'stddev': str(stddev),
+                },
+            'runs': runs
+        }
+
+        # write the results list to a yaml file
+        with open(f'{dest_dir}/results.yaml', 'w') as f:
+            yaml.dump(results, f)
+
 
 if __name__ == '__main__':
   default_config_path = './configs/config.yaml'
