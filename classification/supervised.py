@@ -86,20 +86,20 @@ class SupervisedLightningModule(LightningModule):
         loss = loss_sim
         return loss, output, label
 
-    def _calc_accuracy(self, outputs, train_outputs=False):
-        label_arr = []
-        output_arr = []
+    def _calc_accuracy(self, outputs):
+        label_arr = []      # target label
+        y_arr = []          # network output
         for out in outputs:
-            if train_outputs:
-                output, label = out['output']
+            if isinstance(out, dict):
+                y, label = out['output']
             else:
-                output, label = out
-            _, ind = torch.max(output, 1)
+                y, label = out
+            _, ind = torch.max(y, 1)
             label_arr.append(label)
-            output_arr.append(ind)
+            y_arr.append(ind)
         label_arr = torch.cat(label_arr, 0).numpy()
-        output_arr = torch.cat(output_arr, 0).numpy()
-        acc1 = accuracy_score(label_arr, output_arr)
+        y_arr = torch.cat(y_arr, 0).numpy()
+        acc1 = accuracy_score(label_arr, y_arr)
         return acc1
 
     def training_step(self, batch, batch_idx):
@@ -109,7 +109,7 @@ class SupervisedLightningModule(LightningModule):
         return {'loss':loss, 'output':(output.detach().cpu(), label.detach().cpu())}
     
     def training_epoch_end(self, outputs: Any) -> None:
-        acc = self._calc_accuracy(outputs, train_outputs=True)
+        acc = self._calc_accuracy(outputs)
         self.log('train_acc', acc)
 
     def validation_step(self, batch, batch_idx):

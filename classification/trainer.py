@@ -72,6 +72,7 @@ def main(config_path) -> None:
             acc = result[0]['test_acc']
             accuracies.append(acc)
 
+    if config["evaluate"]:
         accs = np.array(accuracies)
         mean = accs.mean()
         stddev = accs.std()

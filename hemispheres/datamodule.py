@@ -179,6 +179,11 @@ class DataModule(pl.LightningDataModule):
               raw_data_path=self.raw_data_dir,
               mode='test',
               transform=base_transforms)
+        self.mnist_test = HemiSphere(
+              root=self.test_dir,
+              raw_data_path=self.raw_data_dir,
+              mode='test',
+              transform=base_transforms)        
 
     def train_dataloader(self):
         return DataLoader(self.mnist_train,

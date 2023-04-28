@@ -49,26 +49,39 @@ class SupervisedLightningModule(LightningModule):
         self.ce_loss = nn.CrossEntropyLoss()
  
     def _initialize_model(self):
-        mydict = {
-            "mode": self.config["hparams"]["mode"],
-            "farch": self.config["hparams"].get("farch", None),
-            "carch": self.config["hparams"].get("carch", None),
-            "fmodel_path": self.config["hparams"].get("model_path_fine"),
-            "cmodel_path": self.config["hparams"].get("model_path_coarse"),
-            "ffreeze_params": self.config["hparams"].get("ffreeze"),
-            "cfreeze_params": self.config["hparams"].get("cfreeze"),
-            "fine_k": self.config["hparams"].get("fine_k"),
-            "fine_per_k": self.config["hparams"].get("fine_per_k"),
-            "coarse_k": self.config["hparams"].get("coarse_k"),
-            "coarse_per_k": self.config["hparams"].get("coarse_per_k"),
-            "dropout": self.config["hparams"].get("dropout", 1.0),
-            }
-        args = Namespace(**mydict)
+        macro_arch = self.config["hparams"].get("macro_arch", None)
+        if macro_arch == 'bilateral' or macro_arch == None:
+            print("----- **BILATERAL** macro-architecture")
 
-        macro_arch = self.config["hparams"].get(self.config["hparams"]["macro_arch"], None)
-        if macro_arch == 'bilateral' | macro_arch == None:
+            mydict = {
+                "mode": self.config["hparams"]["mode"],
+                "farch": self.config["hparams"].get("farch", None),
+                "carch": self.config["hparams"].get("carch", None),
+                "fmodel_path": self.config["hparams"].get("model_path_fine"),
+                "cmodel_path": self.config["hparams"].get("model_path_coarse"),
+                "ffreeze_params": self.config["hparams"].get("ffreeze"),
+                "cfreeze_params": self.config["hparams"].get("cfreeze"),
+                "fine_k": self.config["hparams"].get("fine_k"),
+                "fine_per_k": self.config["hparams"].get("fine_per_k"),
+                "coarse_k": self.config["hparams"].get("coarse_k"),
+                "coarse_per_k": self.config["hparams"].get("coarse_per_k"),
+                "dropout": self.config["hparams"].get("dropout", 1.0),
+                }
+            args = Namespace(**mydict)
             self.model = bilateral(args)
         else:
+            print("----- **UNILATERAL** macro-architecture")
+
+            mydict = {
+                "mode": self.config["hparams"]["mode"],
+                "arch": self.config["hparams"].get("farch", None),
+                "model_path": self.config["hparams"].get("model_path_fine"),
+                "freeze_params": self.config["hparams"].get("ffreeze"),
+                "k": self.config["hparams"].get("fine_k"),
+                "per_k": self.config["hparams"].get("fine_per_k"),
+                "dropout": self.config["hparams"].get("dropout", 0.0),
+                }
+            args = Namespace(**mydict)
             self.model = unilateral(args)
     
     def _initialize_ensemble_model(self):
@@ -108,30 +121,30 @@ class SupervisedLightningModule(LightningModule):
         self.log('train_acc_coarse', acc_coarse)
 
     def _epoch_end(self, output: Any) -> Any:
-        narrowts = []
-        fineys = []
-        broadts = []
-        coarseys = []
+        y_fine_arr = []     # network output
+        t_fine_arr = []     # target labels
+        y_coarse_arr = []
+        t_coarse_arr = []
         for out in output:
             if isinstance(out, dict):
-                narrow, broad = out['output']
+                fine_out, coarse_out = out['output']
             else:
-                narrow, broad = out
-            narrowt, finey = narrow
-            broadt, coarsey = broad
-            _, narrowind = torch.max(narrowt, 1)
-            _, broadind = torch.max(broadt, 1)
-            narrowts.append(narrowind)
-            fineys.append(finey)
-            broadts.append(broadind)
-            coarseys.append(coarsey)
-        narrowts = torch.cat(narrowts, 0).numpy()
-        broadts = torch.cat(broadts, 0).numpy()
-        fineys = torch.cat(fineys, 0).numpy()
-        coarseys = torch.cat(coarseys, 0).numpy()
-        acc_narr = accuracy_score(fineys, narrowts)
-        acc_broad = accuracy_score(coarseys, broadts)
-        return acc_narr, acc_broad
+                fine_out, coarse_out = out
+            y_fine, t_fine = fine_out
+            y_coarse, t_coarse = coarse_out
+            _, fine_ind = torch.max(y_fine, 1)
+            _, coarse_ind = torch.max(y_coarse, 1)
+            y_fine_arr.append(fine_ind)
+            t_fine_arr.append(t_fine)
+            y_coarse_arr.append(coarse_ind)
+            t_coarse_arr.append(t_coarse)
+        y_fine_arr = torch.cat(y_fine_arr, 0).numpy()
+        y_coarse_arr = torch.cat(y_coarse_arr, 0).numpy()
+        t_fine_arr = torch.cat(t_fine_arr, 0).numpy()
+        t_coarse_arr = torch.cat(t_coarse_arr, 0).numpy()
+        acc_fine = accuracy_score(t_fine_arr, y_fine_arr)
+        acc_coarse = accuracy_score(t_coarse_arr, y_coarse_arr)
+        return acc_fine, acc_coarse
 
     def _eval_step(self, batch, batch_idx, loss_name):
         img1, t_fine, t_coarse = batch['image'], batch['fine'], batch['coarse']
@@ -145,15 +158,15 @@ class SupervisedLightningModule(LightningModule):
         self.log(f'{loss_name}', loss, on_step=False,
                  on_epoch=True, sync_dist=True)
 
-        return ((y_fine.detach().cpu(), y_coarse.detach().cpu()), 
-                        (t_fine.detach().cpu(), t_coarse.detach().cpu()))
+        return ((y_fine.detach().cpu(), t_fine.detach().cpu()), 
+                        (y_coarse.detach().cpu(), t_coarse.detach().cpu()))
 
 
     def validation_step(self, batch, batch_idx):
         return self._eval_step(batch, batch_idx, 'val_loss')
 
     def validation_epoch_end(self, outputs: Any) -> None:
-        acc_fine, acc_coarse = self._epoch_end(outputs, acc_name='test_acc')
+        acc_fine, acc_coarse = self._epoch_end(outputs)
         self.log(f'val_acc_fine', acc_fine)
         self.log(f'val_acc_coarse', acc_coarse)        
 
@@ -161,7 +174,7 @@ class SupervisedLightningModule(LightningModule):
         return self._eval_step(batch, batch_idx, 'test_loss')
 
     def test_epoch_end(self, outputs: Any) -> None:
-        acc_fine, acc_coarse = self._epoch_end(outputs, acc_name='test_acc')
+        acc_fine, acc_coarse = self._epoch_end(outputs)
         self.log(f'test_acc_fine', acc_fine)
         self.log(f'test_acc_coarse', acc_coarse)
 

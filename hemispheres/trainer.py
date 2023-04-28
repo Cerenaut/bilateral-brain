@@ -24,7 +24,9 @@ from utils import run_cli, validate_path, yaml_func
 def main(config_path) -> None:
     config = run_cli(config_path=config_path)
     seeds = config['seeds']
-    runs = [], accuracies = []   # one for each seed
+    runs = []               # one for each seed
+    accuracies_fine = []    # one for each seed
+    accuracies_coarse = []  # one for each seed
     for seed in seeds:
         if seed is not None:
             pl.seed_everything(seed)
@@ -42,7 +44,7 @@ def main(config_path) -> None:
         model = SupervisedLightningModule(config)
 
         save_dir = config['save_dir']
-        exp_name = f"{config['exp_name']}-{config['hparams']['farch']}-{config['hparams']['carch']}-{config['hparams']['mode']}"
+        exp_name = f"{config['exp_name']}-{config['hparams']['macro_arch']}-{config['hparams']['farch']}-{config['hparams']['carch']}-{config['hparams']['mode']}"
         date_time = datetime.now().strftime("%Y%m%d%H%M%S")
         version = f"{date_time}-seed{seed}"
         
@@ -75,18 +77,22 @@ def main(config_path) -> None:
             }
             runs.append(rdict)
             
-            acc = result[0]['test_acc']
-            accuracies.append(acc)
+            acc_fine = result[0]['test_acc_fine']
+            acc_coarse = result[0]['test_acc_coarse']
+            accuracies_fine.append(acc_fine)
+            accuracies_coarse.append(acc_coarse)
 
-        accs = np.array(accuracies)
-        mean = accs.mean()
-        stddev = accs.std()
-
+    if config["evaluate"]:
+        accs_fine = np.array(accuracies_fine)
+        accs_coarse = np.array(accuracies_coarse)
+        
         results = {
             'summary': 
                 {
-                    'mean': str(mean),
-                    'stddev': str(stddev),
+                    'mean_fine': str(accs_fine.mean()),
+                    'stddev_fine': str(accs_fine.std()),
+                    'mean_coarse': str(accs_coarse.mean()),
+                    'stddev_coarse': str(accs_coarse.std()), 
                 },
             'runs': runs
         }

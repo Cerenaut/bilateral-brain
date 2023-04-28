@@ -1,7 +1,7 @@
 seeds: [4]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
-evaluate: False
+evaluate: True
 save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
-exp_name: unilateral
+exp_name: exps
 
 trainer_params:
   accelerator: null
@@ -12,18 +12,16 @@ trainer_params:
   accumulate_grad_batches: 2
 
 dataset:
-  train_dir: ../datasets/CIFAR100/train/fine
-  val_dir: ../datasets/CIFAR100/test/fine
-  test_dir: ../datasets/CIFAR100/test/fine
+  train_dir: ../datasets/CIFAR100/train_small/fine
+  val_dir: ../datasets/CIFAR100/test_small/fine
+  test_dir: ../datasets/CIFAR100/test_small/fine
   raw_data_dir: ../../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:
   type: TensorBoardLogger
-  save_dir: ./logs/         # logs and checkpoints go here
-  name: logger_name         # customize the name to the run you are doing
 
 hparams:
-  mode: 'both'              # both | feature
+  mode: 'both'              # where to get features from:     [both | feature]
   macro_arch: 'unilateral'  # unilateral or bilateral. If unilateral, use farch
   farch: 'resnet9'          # architecture for 'fine' learning e.g. resnet9
   carch: 'resnet9'          # architecture for 'coarse' learning e.g. resnet9
@@ -38,8 +36,8 @@ hparams:
   fine_per_k: 0.0
   coarse_k: 0.0
   coarse_per_k: 0.0
-  model_path_fine: /home/gideon/Dev/bilateral-brain/classification/runs/unilateral-resnet9-fine/20230427135637-seed4/checkpoints/epoch=0-val_acc=0.010.ckpt  # path to narrow model checkpoint
-  model_path_coarse: /home/gideon/Dev/bilateral-brain/classification/runs/unilateral-resnet9-coarse/20230427135755-seed4/checkpoints/epoch=0-val_acc=0.063.ckpt  # path to broad model checkpoint
+  model_path_fine: /home/gideon/Dev/bilateral-brain/classification/runs/unilateral-resnet9-fine/20230428154924-seed8/checkpoints/epoch=0-val_acc=0.012.ckpt  # path to narrow model checkpoint
+  model_path_coarse: /home/gideon/Dev/bilateral-brain/classification/runs/unilateral-resnet9-coarse/20230428155230-seed8/checkpoints/epoch=0-val_acc=0.038.ckpt  # path to broad model checkpoint
 
 ckpt_callback:
   save_top_k: 2

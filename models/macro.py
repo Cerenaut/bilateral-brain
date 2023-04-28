@@ -19,7 +19,7 @@ class BilateralNet(nn.Module):
                  cfreeze_params: bool = True, ffreeze_params: bool = True,
                  fine_k: float = None, fine_per_k: float = None,
                  coarse_k: float = None, coarse_per_k: float = None,
-                 dropout: float = 1.0):
+                 dropout: float = 0.0):
         """ Initialize BilateralNet
 
         Args:
@@ -91,7 +91,7 @@ class UnilateralNet(nn.Module):
                  arch: str,
                  model_path: str,
                  freeze_params: bool,
-                 k: float, k_percent: float,
+                 k: float, per_k: float,
                  dropout: float = 1.0):
         """ Initialize UnilateralNet
 
@@ -107,11 +107,11 @@ class UnilateralNet(nn.Module):
         self.mode = mode
         
         # create the hemispheres
-        self.hemisphere = globals()[arch](Namespace(**{"k": k, "k_percent": k_percent,}))
+        self.hemisphere = globals()[arch](Namespace(**{"k": k, "k_percent": per_k,}))
 
         # load the saved trained parameters, and freeze from further training
         if model_path is not None:
-            self.hemisphere.load_state_dict(load_model(model_path))
+            load_hemi_model(self.hemisphere, model_path)
             if freeze_params:
                 freeze_parameters(self.hemisphere)
         
@@ -180,7 +180,7 @@ def unilateral(args):
                          args.arch,
                          args.model_path, 
                          args.freeze_params,
-                         args.k, args.k_percent,
+                         args.k, args.per_k,
                          args.dropout)
 
 def load_model(model, ckpt_path):
@@ -193,7 +193,7 @@ def load_model(model, ckpt_path):
         [type]: [description]
     """
 
-    # TODO this version is used by gracam, so will need to update with new names
+    # TODO this version is used by gradcam, so will need to update with new names
 
     sdict = torch.load(ckpt_path)['state_dict']
 
