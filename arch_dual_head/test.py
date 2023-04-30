@@ -8,7 +8,7 @@ from tqdm import tqdm
 from torchvision import transforms
 from torch.utils.data import DataLoader, Dataset
 
-from datamodule import HemiSphere
+from arch_dual_head.datamodule import HemiSphere
 from model import SparseAutoencoder, Combiner
 from sklearn.metrics import accuracy_score
 from utils import pil_loader, run_cli

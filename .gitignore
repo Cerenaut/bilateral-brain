@@ -1,9 +1,10 @@
 
 # generated files
-/classification/runs/
-/classification/logs/
-/hemispheres/runs/
-/hemispheres/logs/
+/arch_single_head/runs/
+/arch_single_head/logs/
+/arch_dual_head/runs/
+/arch_dual_head/logs/
+/runs/
 /datasets/
 
 # Byte-compiled / optimized / DLL files
@@ -137,3 +138,4 @@ dmypy.json
 .pyre/
 classification/configs/config-coarse.yaml
 classification/configs/config-coarse.yaml
+arch_dual_head/runs/unilateral-resnet9-resnet9-both/20230427161129-seed4/events.out.tfevents.1682575891.walter.16004.0

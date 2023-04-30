@@ -69,7 +69,7 @@ class SupervisedLightningModule(LightningModule):
                     "model_path": self.config["hparams"].get("model_path"),
                     "freeze_params": False,
                     "k": self.config["hparams"].get("k"),
-                    "k_percent": self.config["hparams"].get("k_percent"),
+                    "per_k": self.config["hparams"].get("per_k"),
                     "dropout": self.config["hparams"].get("dropout", 1.0)
                 }
         args = Namespace(**mydict)

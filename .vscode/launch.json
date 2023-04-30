@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    
         {
             "name": "Python: Current File",
             "type": "python",
@@ -36,5 +37,17 @@
             },
             "console": "integratedTerminal"
         },
+        {
+            "name": "train_system",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "train_system.py",
+            "args": [],
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+            "console": "integratedTerminal",
+        },        
     ]
 }

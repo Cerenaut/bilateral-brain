@@ -29,6 +29,7 @@ def run_cli(config_path='configs/config.yaml'):
             print(exc)
     return config
 
+
 def yaml_func(config_param):
 
     if isinstance(config_param, list):
@@ -47,11 +48,13 @@ def yaml_func(config_param):
             call = globals()[key](**config_param)
         return call
 
+
 def pil_loader(path: str) -> Image.Image:
     # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
     with open(path, 'rb') as f:
         img = Image.open(f)
         return img.convert('RGB')
+
 
 def inverse_normalize(img,
                       mean=(0.485, 0.456, 0.406),
@@ -77,6 +80,7 @@ def matplotlib_imshow(img, one_channel=False, unnormalize=False):
     else:
         plt.imshow(np.transpose(npimg, (1, 2, 0)))
 
+
 def plot_grad_flow(named_parameters):
     ave_grads = []
     layers = []
@@ -94,6 +98,7 @@ def plot_grad_flow(named_parameters):
     plt.title("Gradient flow")
     plt.grid(True)
     return fig
+
 
 def plot_grad_flow_v2(named_parameters):
     '''Plots the gradients flowing through different layers in the net during training.
@@ -124,7 +129,6 @@ def plot_grad_flow_v2(named_parameters):
                 Line2D([0], [0], color="b", lw=4),
                 Line2D([0], [0], color="k", lw=4)], ['max-gradient', 'mean-gradient', 'zero-gradient'])
     return fig
-
 
 def plot_classes_preds(decode1, decode2, image1, image2):
     '''
@@ -161,7 +165,6 @@ def validate_path(path):
         return osp.join(PROJECT_PATH, path)
     else:
         return FileNotFoundError
-
 
 def activation_fn(fn_type):
     """Simple switcher for choosing activation functions."""
@@ -420,3 +423,16 @@ def max_pool2d_same(x, kernel_size, stride, padding=(0, 0), dilation=(1, 1), cei
 
     x, _ = pad_same(x, kernel_size, stride, value=-float('inf'))
     return F.max_pool2d(x, kernel_size, stride, padding, dilation, ceil_mode)
+
+def mod_filename(filepath, new_filename):
+    
+    # get the file extension
+    file_ext = os.path.splitext(filepath)[1]
+
+    # create the new filename
+    new_filename = new_filename + file_ext
+
+    # join the new filename with the path of the original file
+    new_filepath = os.path.join(os.path.dirname(filepath), new_filename)
+
+    return new_filepath

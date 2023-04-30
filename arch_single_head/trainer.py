@@ -11,28 +11,26 @@ import numpy as np
 from pathlib import Path
 from argparse import ArgumentParser, Namespace
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import TestTubeLogger, TensorBoardLogger
+from pytorch_lightning.loggers import TensorBoardLogger
 
-from datamodule import DataModule
-from supervised import SupervisedLightningModule
-
-import sys
-sys.path.append('../')
-from utils import run_cli, validate_path, yaml_func
+from .datamodule import DataModule
+from .supervised import SupervisedLightningModule
+from utils import run_cli, yaml_func
 
 
 def main(config_path) -> None:
     config = run_cli(config_path=config_path)
     seeds = config['seeds']
-    runs = []               # one for each seed
-    accuracies_fine = []    # one for each seed
-    accuracies_coarse = []  # one for each seed
+
+    # data structures to store results - one for each seed
+    runs, accuracies,checkpoints = [], [], []
+
     for seed in seeds:
         if seed is not None:
             pl.seed_everything(seed)
 
         ckpt_callback = ModelCheckpoint(
-            filename='{epoch}-{val_loss:.2f}',
+            filename='{epoch}-{val_acc:.3f}',
             **config['ckpt_callback'],
         )
         if 'callbacks' in config['trainer_params']:
@@ -40,31 +38,32 @@ def main(config_path) -> None:
                 config['trainer_params']['callbacks'])
         if config['trainer_params']['default_root_dir'] == "None":
             config['trainer_params']['default_root_dir'] = osp.dirname(__file__)
-               
+        
         model = SupervisedLightningModule(config)
 
         save_dir = config['save_dir']
-        exp_name = f"{config['exp_name']}-{config['hparams']['macro_arch']}-{config['hparams']['farch']}-{config['hparams']['carch']}-{config['hparams']['mode']}"
+        exp_name = f"{config['exp_name']}-{config['hparams']['arch']}-{config['hparams']['mode']}"
         date_time = datetime.now().strftime("%Y%m%d%H%M%S")
         version = f"{date_time}-seed{seed}"
-        
+
         logger = TensorBoardLogger(save_dir=save_dir, name=exp_name, version=version)
 
         trainer = pl.Trainer(**config['trainer_params'],
                             callbacks=[ckpt_callback],
                             logger=logger)
-
         imdm = DataModule(
             train_dir=config['dataset']['train_dir'],
             val_dir=config['dataset']['test_dir'],
             test_dir=config['dataset']['test_dir'],
-            raw_data_dir=config['dataset']['raw_data_dir'],
             batch_size=config['hparams']['batch_size'],
-            num_workers=config['hparams']['num_workers'],
-            split=False,
-            split_file=None)
+            num_workers=config['hparams']['num_workers'])
         trainer.fit(model, datamodule=imdm)
 
+        # get the path to the best checkpoint saved by the callback
+        checkpoint_path = ckpt_callback.best_model_path
+        checkpoints.append(checkpoint_path)
+
+        # save the config file in the results folder
         dest_dir = os.path.join(save_dir, exp_name, version)
         shutil.copy(config_path, f'{dest_dir}/config.yaml')
 
@@ -77,22 +76,19 @@ def main(config_path) -> None:
             }
             runs.append(rdict)
             
-            acc_fine = result[0]['test_acc_fine']
-            acc_coarse = result[0]['test_acc_coarse']
-            accuracies_fine.append(acc_fine)
-            accuracies_coarse.append(acc_coarse)
+            acc = result[0]['test_acc']
+            accuracies.append(acc)
 
     if config["evaluate"]:
-        accs_fine = np.array(accuracies_fine)
-        accs_coarse = np.array(accuracies_coarse)
-        
+        accs = np.array(accuracies)
+        mean = accs.mean()
+        stddev = accs.std()
+
         results = {
             'summary': 
                 {
-                    'mean_fine': str(accs_fine.mean()),
-                    'stddev_fine': str(accs_fine.std()),
-                    'mean_coarse': str(accs_coarse.mean()),
-                    'stddev_coarse': str(accs_coarse.std()), 
+                    'mean': str(mean),
+                    'stddev': str(stddev),
                 },
             'runs': runs
         }
@@ -101,6 +97,8 @@ def main(config_path) -> None:
         with open(f'{dest_dir}/results.yaml', 'w') as f:
             yaml.dump(results, f)
 
+    return checkpoints
+
 if __name__ == '__main__':
-    default_config_path = './configs/config.yaml'
-    main(default_config_path)
+  default_config_path = './configs/config.yaml'
+  main(default_config_path)
