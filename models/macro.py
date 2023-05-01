@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 from argparse import Namespace
-from models.resnet_v0 import resnet9
+from models.resnet import resnet9
 from utils import setup_logger
 
 def check_list():
@@ -34,9 +34,7 @@ class BilateralNet(nn.Module):
         super(BilateralNet, self).__init__()
         
         self.logger = setup_logger(__name__)
-        self.logger.debug(f"------- Initialize BilaterallNet with \
-                          farch: {farch}, carch: {carch}, mode: {mode}, \
-                          dropout: {dropout}")
+        self.logger.debug(f"------- Initialize BilaterallNet with farch: {farch}, carch: {carch}, mode: {mode}, dropout: {dropout}")
         
         self.mode = mode
         
@@ -111,11 +109,7 @@ class UnilateralNet(nn.Module):
         super(UnilateralNet, self).__init__()
         
         self.logger = setup_logger()
-
-        self.logger.debug(f"------- Initialize UnilateralNet with mode: {mode}, \
-                          arch: {arch}, model_path: {model_path}, \
-                          k: {k}, per_k: {per_k}, freeze_params: {freeze_params} \
-                          dropout: {dropout}")
+        self.logger.debug(f"------- Initialize UnilateralNet with mode: {mode}, arch: {arch}, model_path: {model_path}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
 
         self.mode = mode
         
@@ -132,6 +126,8 @@ class UnilateralNet(nn.Module):
         
         # add heads
         # out_dim = self.hemisphere.res2[-1][0].out_channels
+
+        self.logger.debug(f"--------- hemisphere shape: {self.hemisphere}")
 
         if self.mode not in check_list():
             raise Exception('Mode of unilateral network does not match')

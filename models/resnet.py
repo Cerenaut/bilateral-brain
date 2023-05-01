@@ -10,6 +10,7 @@
 
 import torch
 import torch.nn as nn
+from utils import setup_logger
 
 def check_list():
     return ['narrow', 'broad', 'both', 'feature']
@@ -153,12 +154,43 @@ class ResNet(nn.Module):
             return output
 
 
-class Net(nn.Module):
+class ResidualBlock(nn.Module):
+    """
+    A residual block as defined by He et al.
+    """
+
+    def __init__(self, in_channels, out_channels, kernel_size, padding):
+        super(ResidualBlock, self).__init__()
+        self.conv_res1 = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
+                                   padding=padding, bias=False)
+        self.conv_res1_bn = nn.BatchNorm2d(num_features=out_channels, momentum=0.9)
+        self.conv_res2 = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=kernel_size,
+                                   padding=padding, bias=False)
+        self.conv_res2_bn = nn.BatchNorm2d(num_features=out_channels, momentum=0.9)
+        self.downsample = None
+
+        self.relu = nn.ReLU(inplace=False)
+
+    def forward(self, x):
+        residual = x
+
+        out = self.relu(self.conv_res1_bn(self.conv_res1(x)))
+        out = self.conv_res2_bn(self.conv_res2(out))
+
+        if self.downsample is not None:
+            residual = self.downsample(residual)
+
+        out = self.relu(out)
+        out += residual
+        return out
+
+
+class ResNet9(nn.Module):
     """
     A Residual network.
     """
     def __init__(self):
-        super(Net, self).__init__()
+        super(ResNet9, self).__init__()
 
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, padding=1, bias=False),
@@ -189,7 +221,9 @@ class Net(nn.Module):
 def resnet9(args):
     """ return a ResNet 18 object
     """
-    return Net()
+    logger = setup_logger()
+    logger.warning("----- WARNINGS: this implementation of resnet9 does not accept parameters i.e. no sparsity.")
+    return ResNet9()
 
 def resnet18(mode):
     """ return a ResNet 18 object
@@ -215,36 +249,6 @@ def resnet152():
     """ return a ResNet 152 object
     """
     return ResNet(BottleNeck, [3, 8, 36, 3])
-
-class ResidualBlock(nn.Module):
-    """
-    A residual block as defined by He et al.
-    """
-
-    def __init__(self, in_channels, out_channels, kernel_size, padding):
-        super(ResidualBlock, self).__init__()
-        self.conv_res1 = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
-                                   padding=padding, bias=False)
-        self.conv_res1_bn = nn.BatchNorm2d(num_features=out_channels, momentum=0.9)
-        self.conv_res2 = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=kernel_size,
-                                   padding=padding, bias=False)
-        self.conv_res2_bn = nn.BatchNorm2d(num_features=out_channels, momentum=0.9)
-        self.downsample = None
-
-        self.relu = nn.ReLU(inplace=False)
-
-    def forward(self, x):
-        residual = x
-
-        out = self.relu(self.conv_res1_bn(self.conv_res1(x)))
-        out = self.conv_res2_bn(self.conv_res2(out))
-
-        if self.downsample is not None:
-            residual = self.downsample(residual)
-
-        out = self.relu(out)
-        out += residual
-        return out
 
 # bicam from resnet_v0.py was used 
 def load_bicam_model(ckpt_path):

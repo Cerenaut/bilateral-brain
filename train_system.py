@@ -102,7 +102,7 @@ if __name__ == '__main__':
                                     and then optionally train/test bilateral architecture with those hemispheres.')
 
   # add arguments
-  parser.add_argument('--arch', type=str, default='resnet9', choices=['resnet9', 'vgg'],
+  parser.add_argument('--arch', type=str, default='resnet9', choices=['resnet9', 'vgg11'],
                       help='Architecture of the model')
   parser.add_argument('--sh_base_config', type=str, default='arch_single_head/configs/config.yaml',
                       help='Path to the base config file for training individual hemisphers (with single head). Relative to the current folder.')
