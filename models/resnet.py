@@ -152,6 +152,45 @@ class ResNet(nn.Module):
         elif self.mode =='feature':
             return output
 
+
+class Net(nn.Module):
+    """
+    A Residual network.
+    """
+    def __init__(self):
+        super(Net, self).__init__()
+
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(num_features=64, momentum=0.9),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3,  padding=1, bias=False),
+            nn.BatchNorm2d(num_features=128, momentum=0.9),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),
+            ResidualBlock(in_channels=128, out_channels=128, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(num_features=256, momentum=0.9),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(num_features=512, momentum=0.9),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            ResidualBlock(in_channels=512, out_channels=512, kernel_size=3, padding=1),
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten(),
+        )
+
+    def forward(self, x):
+        out = self.conv(x)
+        return out
+
+def resnet9(args):
+    """ return a ResNet 18 object
+    """
+    return Net()
+
 def resnet18(mode):
     """ return a ResNet 18 object
     """

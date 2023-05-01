@@ -1,4 +1,4 @@
-seeds: [4, 8]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
+seeds: [4]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
 evaluate: True
 save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
 exp_name: dual_head
@@ -7,7 +7,7 @@ trainer_params:
   accelerator: null
   gpus: 0
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 1
+  max_epochs: 30
   log_every_n_steps: 10
   accumulate_grad_batches: 2
 

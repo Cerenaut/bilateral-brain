@@ -7,14 +7,14 @@ trainer_params:
   accelerator: null
   gpus: 1
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 1
+  max_epochs: 30
   log_every_n_steps: 2
   gradient_clip_val: 10
 
 dataset:
-  train_dir: ../datasets/CIFAR100/train_small/coarse
-  val_dir: ../datasets/CIFAR100/test_small/coarse
-  test_dir: ../datasets/CIFAR100/test_small/coarse
+  train_dir: ../datasets/CIFAR100/train/coarse
+  val_dir: ../datasets/CIFAR100/test/coarse
+  test_dir: ../datasets/CIFAR100/test/coarse
 
 logger:
   type: TensorBoardLogger
@@ -24,7 +24,6 @@ hparams:
   mode: 'coarse'              # the one head configuration:    [fine | coarse | feature]
   lr: 1.0e-4
   weight_decay: 1.0e-3
-  warmup_epochs: 1
   batch_size: 256
   k: 0.0
   per_k: 0.0

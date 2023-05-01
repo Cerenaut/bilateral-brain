@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from argparse import Namespace
 from models.resnet_v0 import resnet9
+from utils import setup_logger
 
 def check_list():
     return ['fine', 'coarse', 'both', 'feature']
@@ -13,6 +14,7 @@ class BilateralNet(nn.Module):
     The hemispheres types are configurable.
     The heads are for fine and coarse labels respectively.
     """
+
     def __init__(self, mode: str,
                  farch: str, carch: str,
                  cmodel_path = None, fmodel_path = None,
@@ -31,6 +33,11 @@ class BilateralNet(nn.Module):
         """
         super(BilateralNet, self).__init__()
         
+        self.logger = setup_logger(__name__)
+        self.logger.debug(f"------- Initialize BilaterallNet with \
+                          farch: {farch}, carch: {carch}, mode: {mode}, \
+                          dropout: {dropout}")
+        
         self.mode = mode
         
         # create the hemispheres
@@ -44,25 +51,23 @@ class BilateralNet(nn.Module):
             if ffreeze_params:
                 freeze_params(self.fine_hemi)
                 str += ",      ---> and freeze"
-            print(str)
+            self.logger.debug(str)
         if cmodel_path is not None:
             str = "------- Load coarse hemisphere"
             load_hemi_model(self.coarse_hemi, cmodel_path)
             if cfreeze_params:
                 freeze_params(self.coarse_hemi)
                 str += ",      ---> and freeze"
-            print(str)
+            self.logger.debug(str)
 
         # add heads
-        out_dim = self.fine_hemi.res2[-1][0].out_channels + self.coarse_hemi.res2[-1][0].out_channels
+        # out_dim = self.fine_hemi.res2[-1][0].out_channels + self.coarse_hemi.res2[-1][0].out_channels
         self.fine_head = nn.Sequential(
-                            nn.Flatten(),
                             nn.Dropout(dropout),
-                            nn.Linear(out_dim, 100))
+                            nn.Linear(1024, 100))
         self.coarse_head = nn.Sequential(
-                            nn.Flatten(),
                             nn.Dropout(dropout),
-                            nn.Linear(out_dim, 20))
+                            nn.Linear(1024, 20))
 
     def forward(self, x):
         """[summary]
@@ -86,13 +91,14 @@ class UnilateralNet(nn.Module):
     The hemisphere and head type(s) are configurable.
     The heads can be for fine, coarse or both labels respectively.
     """
+
     def __init__(self,
                  mode: str,
                  arch: str,
                  model_path: str,
                  freeze_params: bool,
                  k: float, per_k: float,
-                 dropout: float = 1.0):
+                 dropout: float):
         """ Initialize UnilateralNet
 
         Args:
@@ -104,6 +110,13 @@ class UnilateralNet(nn.Module):
         """
         super(UnilateralNet, self).__init__()
         
+        self.logger = setup_logger()
+
+        self.logger.debug(f"------- Initialize UnilateralNet with mode: {mode}, \
+                          arch: {arch}, model_path: {model_path}, \
+                          k: {k}, per_k: {per_k}, freeze_params: {freeze_params} \
+                          dropout: {dropout}")
+
         self.mode = mode
         
         # create the hemispheres
@@ -111,26 +124,26 @@ class UnilateralNet(nn.Module):
 
         # load the saved trained parameters, and freeze from further training
         if model_path is not None:
+            self.logger.debug(f"------- Load hemisphere from checkpoint: {model_path}")
             load_hemi_model(self.hemisphere, model_path)
             if freeze_params:
+                self.logger.debug(f"------- Freeze hemisphere parameters")
                 freeze_parameters(self.hemisphere)
         
         # add heads
-        out_dim = self.hemisphere.res2[-1][0].out_channels
+        # out_dim = self.hemisphere.res2[-1][0].out_channels
 
         if self.mode not in check_list():
             raise Exception('Mode of unilateral network does not match')
         
         if self.mode == 'fine' or self.mode == 'both':        
             self.fine_head = nn.Sequential(
-                                nn.Flatten(),
                                 nn.Dropout(dropout),
-                                nn.Linear(out_dim, 100))
+                                nn.Linear(512, 100))
         if self.mode == 'coarse' or self.mode == 'both':                    
             self.coarse_head = nn.Sequential(
-                                nn.Flatten(),
                                 nn.Dropout(dropout),
-                                nn.Linear(out_dim, 20))
+                                nn.Linear(512, 20))
 
     def forward(self, x):
         """[summary]

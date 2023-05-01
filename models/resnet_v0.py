@@ -124,8 +124,6 @@ class ResNet9(nn.Module):
         super().__init__()
         self.k = k
         self.k_percent = k_percent
-        k = None
-        k_percent = None
         self.conv1 = conv_block(3, 64, k=self.k,         
                                         k_percent=self.k_percent, act_fn=act_fn)
         self.conv2 = conv_block(64, 128, k=self.k,         
@@ -143,11 +141,15 @@ class ResNet9(nn.Module):
                                         k_percent=self.k_percent, act_fn=act_fn),
                                     conv_block(512, 512, k=self.k,         
                                         k_percent=self.k_percent, act_fn=act_fn))
-        if k is not None and k_percent is not None:
-            sparse_mlp = SparseMLP(k, k_percent)
-        else:
-            sparse_mlp = nn.Identity()
-        self.avg_pool = nn.MaxPool2d(4)
+        
+        # TODO potentially re-add ability to add a sparse MLP
+        # if k is not None and k_percent is not None:
+        #     sparse_mlp = SparseMLP(k, k_percent)
+        # else:
+        #     sparse_mlp = nn.Identity()
+        
+        self.avg_pool = nn.Sequential(nn.MaxPool2d(4),
+                                      nn.Flatten(),)
         
     def forward(self, xb):
         out = self.conv1(xb)

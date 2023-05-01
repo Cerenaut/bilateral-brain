@@ -18,10 +18,12 @@ from .supervised import SupervisedLightningModule
 
 import sys
 sys.path.append('../')
-from utils import run_cli, validate_path, yaml_func
+from utils import run_cli, validate_path, yaml_func, setup_logger
 
+logger = setup_logger(__name__)
 
-def main(config_path) -> None:
+def main(config_path, logger_name='arch_dual_head') -> None:
+
     config = run_cli(config_path=config_path)
     seeds = config['seeds']
     runs = []               # one for each seed

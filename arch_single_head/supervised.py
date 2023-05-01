@@ -70,7 +70,7 @@ class SupervisedLightningModule(LightningModule):
                     "freeze_params": False,
                     "k": self.config["hparams"].get("k"),
                     "per_k": self.config["hparams"].get("per_k"),
-                    "dropout": self.config["hparams"].get("dropout", 1.0)
+                    "dropout": self.config["hparams"].get("dropout", 0.0)
                 }
         args = Namespace(**mydict)
         self.model = unilateral(args)

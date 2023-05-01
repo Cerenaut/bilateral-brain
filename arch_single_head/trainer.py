@@ -7,18 +7,26 @@ import os.path as osp
 import pytorch_lightning as pl
 from datetime import datetime
 import numpy as np
+import logging
 
 from pathlib import Path
 from argparse import ArgumentParser, Namespace
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from .datamodule import DataModule
-from .supervised import SupervisedLightningModule
-from utils import run_cli, yaml_func
 
+if __name__ == '__main__':
+    from datamodule import DataModule
+    from supervised import SupervisedLightningModule
+else:
+    from .datamodule import DataModule
+    from .supervised import SupervisedLightningModule
+from utils import run_cli, yaml_func, setup_logger
 
-def main(config_path) -> None:
+logger = setup_logger(__name__)
+
+def main(config_path, logger_name='arch_single_head') -> None:
+
     config = run_cli(config_path=config_path)
     seeds = config['seeds']
 

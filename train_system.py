@@ -7,11 +7,13 @@ import arch_single_head.trainer as tr_single
 import arch_dual_head.trainer as tr_dual
 from utils import run_cli, mod_filename
 
+LOGGER_NAME = 'train_system'
+
 data = {'fine': {}, 'coarse': {}}
-data['fine']['train'] = 'datasets/CIFAR100/train_small/fine'
-data['fine']['test'] = 'datasets/CIFAR100/test_small/fine'
-data['coarse']['train'] = 'datasets/CIFAR100/train_small/coarse'
-data['coarse']['test'] = 'datasets/CIFAR100/test_small/coarse'
+data['fine']['train'] = 'datasets/CIFAR100/train/fine'
+data['fine']['test'] = 'datasets/CIFAR100/test/fine'
+data['coarse']['train'] = 'datasets/CIFAR100/train/coarse'
+data['coarse']['test'] = 'datasets/CIFAR100/test/coarse'
 data['raw'] = '../datasets/cifar-100-python/'
 
 def train_hemispheres(arch, base_config_path):
@@ -40,7 +42,7 @@ def train_hemispheres(arch, base_config_path):
       yaml.safe_dump(doc, out)
 
     # run the experiment
-    checkpoints = tr_single.main(new_config_path)
+    checkpoints = tr_single.main(new_config_path, logger_name=LOGGER_NAME)
     checkpoints_dict[label_type] = checkpoints
 
   return checkpoints_dict['fine'], checkpoints_dict['coarse']
@@ -78,7 +80,7 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
       yaml.safe_dump(doc, out)
 
     # run the experiment
-    tr_dual.main(new_config_path)
+    tr_dual.main(new_config_path, logger_name=LOGGER_NAME)
     i += 1
 
 
