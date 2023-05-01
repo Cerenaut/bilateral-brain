@@ -127,8 +127,6 @@ class UnilateralNet(nn.Module):
         # add heads
         # out_dim = self.hemisphere.res2[-1][0].out_channels
 
-        self.logger.debug(f"--------- hemisphere shape: {self.hemisphere}")
-
         if self.mode not in check_list():
             raise Exception('Mode of unilateral network does not match')
         

@@ -444,11 +444,12 @@ def setup_logger(name = __name__, log_level=logging.DEBUG):
     logger = logging.getLogger(name)
 
     # add console handler with nice formatting
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(log_level)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+    if not logger.hasHandlers():        
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(log_level)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
 
     logger.setLevel(log_level)
 

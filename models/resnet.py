@@ -222,7 +222,7 @@ def resnet9(args):
     """ return a ResNet 18 object
     """
     logger = setup_logger()
-    logger.warning("----- WARNINGS: this implementation of resnet9 does not accept parameters i.e. no sparsity.")
+    logger.warning("This implementation of resnet9 does not accept parameters i.e. no sparsity.")
     return ResNet9()
 
 def resnet18(mode):
