@@ -250,18 +250,4 @@ def resnet152():
     """
     return ResNet(BottleNeck, [3, 8, 36, 3])
 
-# bicam from resnet_v0.py was used 
-def load_bicam_model(ckpt_path):
-    """[summary]
-
-    Args:
-        ckpt_path ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    sdict = torch.load(ckpt_path)
-    # ['state_dict']
-    model_dict = {k.replace('model.', ''):v for k,v in sdict.items() if 'conv' in k}
-    return model_dict
 
