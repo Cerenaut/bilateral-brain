@@ -38,8 +38,8 @@ The hemispheres are pre-trained in step (1), and so here they are frozen (they w
 
 
 ## Guide to the folder structure:
-- arch_single_head: Train/Test one single hemisphere, with one head
-- arch_dual_head: Train/Test a macro-architecture consisting of optionally one or two hemispheres, with two heads
+- `arch_single_head`: Train/Test one single hemisphere, with one head
+- `arch_dual_head`: Train/Test a macro-architecture consisting of optionally one or two hemispheres, with two heads
 
 
 ## Preparing the data

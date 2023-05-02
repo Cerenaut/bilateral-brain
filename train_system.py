@@ -16,7 +16,7 @@ data['coarse']['train'] = 'datasets/CIFAR100/train/coarse'
 data['coarse']['test'] = 'datasets/CIFAR100/test/coarse'
 data['raw'] = '../datasets/cifar-100-python/'
 
-def train_hemispheres(arch, base_config_path):
+def train_hemispheres(arch, base_config_path, num_seeds):
   print("-------- train Left and Right hemispheres ---------")
   print(f"-- arch = {arch} --")
   print("---------------------------------------------------")
@@ -29,6 +29,7 @@ def train_hemispheres(arch, base_config_path):
     doc = run_cli(config_path=abs_filpath)
 
     # customize params
+    doc['seeds'] = list(range(num_seeds))
     doc['hparams']['mode'] = label_type
     doc['hparams']['arch'] = arch
     doc['dataset']['train_dir'] = data[label_type]['train']
@@ -85,11 +86,12 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
 
 
 def main(arch, single_head_base_config, dual_head_base_config, 
-         no_bilateral=False,  f_checkpoints='', c_checkpoints=''):
+         no_bilateral=False, num_seeds=1,
+         f_checkpoints='', c_checkpoints=''):
   
   # if we don't have saved checkpoints, train the hemispheres
   if f_checkpoints == '' or c_checkpoints == '':
-    f_checkpoints, c_checkpoints = train_hemispheres(arch, single_head_base_config)
+    f_checkpoints, c_checkpoints = train_hemispheres(arch, single_head_base_config, num_seeds)
 
   # optionally train the whole bilateral architecture
   if not no_bilateral:
@@ -111,13 +113,15 @@ if __name__ == '__main__':
   parser.add_argument('--no_bilateral', dest='no_bilateral', action='store_true',
                       help='Train the hemispheres, but don\'t continue to the bilateral architecture.')
   parser.set_defaults(no_bilateral=False)
+  parser.add_argument('--num_seeds', type=int, default='num_seeds',
+                      help='The number of seeds to do for each hemisphere, and hence the bilateral architecture (there will be one for each trained pair of hemispheres). \
+The seeds will be 0, 1, ..., num_seeds-1.')
 
   parser.add_argument('--f_chk', type=str, default='',
                       help='Path to folder of saved checkpoints for fine hemispheres. If fine and coarse checkpoints provided, then dont train hemispheres.')
   parser.add_argument('--c_chk', type=str, default='',
                       help='Path to folder of saved checkpoints for coarse hemispheres. If fine and coarse checkpoints provided, then dont train hemispheres.')
   
-
   # parse the command line arguments
   args = parser.parse_args()
 
@@ -126,14 +130,17 @@ if __name__ == '__main__':
   print(f"sh_base_config: {args.sh_base_config}")
   print(f"dh_base_config: {args.dh_base_config}")
   print(f"no_bilateral: {args.no_bilateral}")
+  print(f"num_seeds: {args.num_seeds}")
   print(f"f_chk: {args.f_chk}")
   print(f"c_chk: {args.c_chk}")
 
   # TODO add code to go through checkpoint folders, and create an array of checkpoints for each hemisphere
+  # in order to support passing f_chk and c_chk, rather than training the hemispheres here
 
   main(args.arch, 
        args.sh_base_config, 
        args.dh_base_config, 
        args.no_bilateral, 
+       args.num_seeds,
        args.f_chk, 
        args.c_chk)
