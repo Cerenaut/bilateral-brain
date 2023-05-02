@@ -12,9 +12,9 @@ trainer_params:
   accumulate_grad_batches: 2
 
 dataset:
-  train_dir: ../datasets/CIFAR100/train_small/fine
-  val_dir: ../datasets/CIFAR100/test_small/fine
-  test_dir: ../datasets/CIFAR100/test_small/fine
+  train_dir: ../datasets/CIFAR100/train/fine
+  val_dir: ../datasets/CIFAR100/test/fine
+  test_dir: ../datasets/CIFAR100/test/fine
   raw_data_dir: ../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:
@@ -22,11 +22,11 @@ logger:
 
 hparams:
   mode: 'both'              # where to get output from:     [both | feature]
-  macro_arch: 'bilateral'   # unilateral or bilateral. If unilateral, use farch
-  farch: 'resnet9'          # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
-  carch: 'resnet9'          # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
-  ffreeze: True
-  cfreeze: True
+  macro_arch: 'unilateral'  # unilateral or bilateral. If unilateral, use farch
+  farch: 'sparse_resnet9'   # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  carch: ''                 # architecture for 'coarse' learning e.g. resnet9. THIS IS IGNORED if macro_arch is 'unilateral'
+  ffreeze: False
+  cfreeze: False
   lr: 1.0e-4
   weight_decay: 1.0e-5
   warmup_epochs: 0
@@ -36,8 +36,8 @@ hparams:
   fine_per_k: None
   coarse_k: None
   coarse_per_k: None
-  model_path_fine: /path_to_model_checkpoint    # path to narrow model checkpoint
-  model_path_coarse: /path_to_model_checkpoint  # path to broad model checkpoint
+  model_path_fine: None  # path to narrow model checkpoint
+  model_path_coarse: None  # path to broad model checkpoint
 
 ckpt_callback:
   save_top_k: 2
