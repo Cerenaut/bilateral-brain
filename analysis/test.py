@@ -16,8 +16,8 @@ from torchvision.datasets import DatasetFolder
 from torch.utils.data import Dataset, DataLoader
 
 sys.path.append("/kaggle/cerenaut/")
-from models.resnet_v0 import load_model, load_feat_model, \
-                load_bicam_model,resnet9, bicameral
+from models.sparse_resnet import load_model, load_feat_model, \
+                load_bicam_model,sparse_resnet9, bicameral
 
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
@@ -126,7 +126,7 @@ def specialised_images(args):
                 "k_percent": None,
         }
     model_args = Namespace(**mydict)
-    model = resnet9(model_args)
+    model = sparse_resnet9(model_args)
     model = load_feat_model(model, args.checkpoint)
     model.to("cuda")
     model.eval()
@@ -165,7 +165,7 @@ def specialised(args):
                 "k_percent": None,
         }
     model_args = Namespace(**mydict)
-    model = resnet9(model_args)
+    model = sparse_resnet9(model_args)
     model = load_model(model, args.checkpoint)
     model.to("cuda")
     model = model.eval()
@@ -308,11 +308,11 @@ def ensemble_images(args):
                 "k_percent": None,
         }
     model_args = Namespace(**mydict)
-    model_a = resnet9(model_args)
+    model_a = sparse_resnet9(model_args)
     model_a = load_model(model_a, "/home/chandramouli/kaggle/cerenaut/hemispheres/logs/resnet9-ensemble5/resnet9-ensemble5-seed80/layer=only1|lr=0.0001|/checkpoints/last.ckpt")
     model_a.to("cuda")
     model_a = model_a.eval()
-    model_b = resnet9(model_args)
+    model_b = sparse_resnet9(model_args)
     model_b = load_model(model_b, "/home/chandramouli/kaggle/cerenaut/hemispheres/logs/resnet9-ensemble5/resnet9-ensemble5-seed100/layer=only1|lr=0.0001|/checkpoints/last.ckpt")
     model_b.to("cuda")
     model_b = model_b.eval()

@@ -23,7 +23,7 @@ logger:
 hparams:
   mode: 'both'              # where to get features from:     [both | feature]
   macro_arch: 'unilateral'  # unilateral or bilateral. If unilateral, use farch
-  farch: 'resnet9'          # architecture for 'fine' learning e.g. resnet9
+  farch: 'resnet9'          # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
   carch: 'resnet9'          # architecture for 'coarse' learning e.g. resnet9
   ffreeze: False
   cfreeze: False

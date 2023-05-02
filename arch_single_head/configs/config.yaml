@@ -20,7 +20,7 @@ logger:
   type: TensorBoardLogger
 
 hparams:
-  arch: 'resnet9'
+  arch: 'vgg11'               # [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
   mode: 'coarse'              # the one head configuration:    [fine | coarse | feature]
   lr: 1.0e-4
   weight_decay: 1.0e-3

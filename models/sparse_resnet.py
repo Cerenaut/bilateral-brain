@@ -116,7 +116,7 @@ def conv_trans_block(in_channels,
     if pool: layers.append(nn.Upsample(scale_factor=2, mode='nearest'))
     return nn.Sequential(*layers)
 
-class ResNet9(nn.Module):
+class SparseResNet9(nn.Module):
     def __init__(self,
                     k=None, 
                     k_percent=None, 
@@ -149,8 +149,9 @@ class ResNet9(nn.Module):
         #     sparse_mlp = nn.Identity()
         
         self.avg_pool = nn.Sequential(nn.MaxPool2d(4),
-                                      nn.Flatten(),)
-        
+                                      nn.Flatten(),)    
+        self.num_features = 512
+
     def forward(self, xb):
         out = self.conv1(xb)
         out = self.conv2(out)
@@ -161,7 +162,8 @@ class ResNet9(nn.Module):
         out = self.avg_pool(out)
         return out
 
-class InvertedResNet9(nn.Module):
+
+class SparseInvertedResNet9(nn.Module):
     def __init__(self, 
                     k=None, 
                     k_percent=None,    
@@ -193,6 +195,8 @@ class InvertedResNet9(nn.Module):
         else:
             sparse_mlp = nn.Identity()
         
+        self.num_features = 64
+
     def forward(self, xb):
         out = self.conv1(xb)
         out = self.conv2(out)
@@ -202,13 +206,13 @@ class InvertedResNet9(nn.Module):
         out = self.res2(out) + out
         return out
 
-def resnet9(args):
+def sparse_resnet9(args):
     """ return a ResNet 9 object
     """
-    return ResNet9(args.k, args.k_percent)
+    return SparseResNet9(args.k, args.k_percent)
 
-def invresnet9(args):
+def sparse_invresnet9(args):
     """ return a ResNet 18 object
     """
-    return InvertedResNet9(args.k, args.k_percent)
+    return SparseInvertedResNet9(args.k, args.k_percent)
 

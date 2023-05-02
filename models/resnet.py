@@ -12,11 +12,6 @@ import torch
 import torch.nn as nn
 from utils import setup_logger
 
-def check_list():
-    return ['narrow', 'broad', 'both', 'feature']
-
-
-# from pygln import gln
 
 class BasicBlock(nn.Module):
     """Basic Block for resnet 18 and resnet 34
@@ -86,7 +81,7 @@ class BottleNeck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, num_block, mode: str = 'both'):
+    def __init__(self, block, num_block):
         super().__init__()
 
         self.in_channels = 64
@@ -102,16 +97,9 @@ class ResNet(nn.Module):
         self.conv4_x = self._make_layer(block, 256, num_block[2], 2)
         self.conv5_x = self._make_layer(block, 512, num_block[3], 2)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.mode = mode
-        if self.mode not in check_list():
-            raise Exception('Mode of training does not match')
-        if self.mode == 'narrow':
-            self.fc = nn.Linear(in_features=512, out_features=100, bias=True)
-        elif self.mode == 'broad':
-            self.fc = nn.Linear(in_features=512, out_features=20, bias=True)
-        elif self.mode == 'both':
-            self.ffc = nn.Linear(in_features=512, out_features=100, bias=True)
-            self.cfc = nn.Linear(in_features=512, out_features=20, bias=True)
+
+        self.num_features = 512
+
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
         """make resnet layers (by layer I didnt mean this 'layer' was the
@@ -145,13 +133,7 @@ class ResNet(nn.Module):
         output = self.conv4_x(output)
         output = self.conv5_x(output)
         output = self.avg_pool(output)
-        output = output.view(output.size(0), -1)
-        if self.mode == 'narrow' or self.mode == 'broad':
-            return self.fc(output)
-        elif self.mode == 'both':
-            return self.ffc(output), self.cfc(output)
-        elif self.mode =='feature':
-            return output
+        return output
 
 
 class ResidualBlock(nn.Module):
@@ -214,6 +196,8 @@ class ResNet9(nn.Module):
             nn.Flatten(),
         )
 
+        self.num_features = 512
+
     def forward(self, x):
         out = self.conv(x)
         return out
@@ -249,5 +233,4 @@ def resnet152():
     """ return a ResNet 152 object
     """
     return ResNet(BottleNeck, [3, 8, 36, 3])
-
 

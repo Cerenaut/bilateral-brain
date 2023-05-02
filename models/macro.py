@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from argparse import Namespace
 from models.resnet import resnet9
+from models.vgg import vgg11
 from utils import setup_logger
 
 def check_list():
@@ -59,13 +60,14 @@ class BilateralNet(nn.Module):
             self.logger.debug(str)
 
         # add heads
-        # out_dim = self.fine_hemi.res2[-1][0].out_channels + self.coarse_hemi.res2[-1][0].out_channels
+        num_features = self.fine_hemi.num_features + self.coarse_hemi.num_features
+        self.logger.debug(f"-- num_features: {num_features}")
         self.fine_head = nn.Sequential(
                             nn.Dropout(dropout),
-                            nn.Linear(1024, 100))
+                            nn.Linear(num_features, 100))
         self.coarse_head = nn.Sequential(
                             nn.Dropout(dropout),
-                            nn.Linear(1024, 20))
+                            nn.Linear(num_features, 20))
 
     def forward(self, x):
         """[summary]
@@ -125,7 +127,8 @@ class UnilateralNet(nn.Module):
                 freeze_parameters(self.hemisphere)
         
         # add heads
-        # out_dim = self.hemisphere.res2[-1][0].out_channels
+        num_features = self.hemisphere.num_features
+        self.logger.debug(f"-- num_features: {num_features}")
 
         if self.mode not in check_list():
             raise Exception('Mode of unilateral network does not match')
@@ -133,11 +136,11 @@ class UnilateralNet(nn.Module):
         if self.mode == 'fine' or self.mode == 'both':        
             self.fine_head = nn.Sequential(
                                 nn.Dropout(dropout),
-                                nn.Linear(512, 100))
+                                nn.Linear(num_features, 100))
         if self.mode == 'coarse' or self.mode == 'both':                    
             self.coarse_head = nn.Sequential(
                                 nn.Dropout(dropout),
-                                nn.Linear(512, 20))
+                                nn.Linear(num_features, 20))
 
     def forward(self, x):
         """[summary]

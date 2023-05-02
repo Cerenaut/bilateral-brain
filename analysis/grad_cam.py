@@ -19,8 +19,8 @@ from pytorch_grad_cam.utils.image import show_cam_on_image
 
 sys.path.append("/kaggle/cerenaut/")
 from analysis.bicameral_gradcam import BicameralGradCAM
-from models.resnet_v0 import load_model, load_feat_model, \
-                load_bicam_model,resnet9, bicameral
+from models.sparse_resnet import load_model, load_feat_model, \
+                load_bicam_model,sparse_resnet9, bicameral
 
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
@@ -60,7 +60,7 @@ def specialised_images(args):
                 "k_percent": None,
         }
     model_args = Namespace(**mydict)
-    model = resnet9(model_args)
+    model = sparse_resnet9(model_args)
     model = load_model(model, args.checkpoint)
     model.to("cuda")
     # model.eval()
