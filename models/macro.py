@@ -70,11 +70,6 @@ class BilateralNet(nn.Module):
                             nn.Linear(num_features, 20))
 
     def forward(self, x):
-        """[summary]
-
-        Args:
-            x ([type]): [description]
-        """
         fembed = self.fine_hemi(x)
         cembed = self.coarse_hemi(x)
         embed = torch.cat([fembed, cembed], axis=1)
@@ -124,7 +119,7 @@ class UnilateralNet(nn.Module):
             load_hemi_model(self.hemisphere, model_path)
             if freeze_params:
                 self.logger.debug(f"------- Freeze hemisphere parameters")
-                freeze_parameters(self.hemisphere)
+                freeze_params(self.hemisphere)
         
         # add heads
         num_features = self.hemisphere.num_features
@@ -143,11 +138,6 @@ class UnilateralNet(nn.Module):
                                 nn.Linear(num_features, 20))
 
     def forward(self, x):
-        """[summary]
-
-        Args:
-            x ([type]): [description]
-        """
         embed = self.hemisphere(x)
 
         if self.mode == 'fine':
@@ -164,16 +154,12 @@ class UnilateralNet(nn.Module):
             return embed
 
 def freeze_params(model):
-    """[summary]
-
-    Args:
-        model ([type]): [description]
-    """
     for param in model.parameters():
         param.requires_grad = False
-    
+
 def bilateral(args):
-    """[summary]
+    """ Return a single hemisphere or bilateral (two hemispheres) network with two heads, based on the args
+        See BilateralNet class for more details
     """
     return BilateralNet(args.mode,
                         args.farch, args.carch, 
@@ -184,7 +170,8 @@ def bilateral(args):
                         args.dropout)
 
 def unilateral(args):
-    """[summary]
+    """ Return a unilateral network (one hemisphere) with one head, based on the args
+        See UnilateralNet class for more details
     """
     return UnilateralNet(args.mode,
                          args.arch,
@@ -192,6 +179,22 @@ def unilateral(args):
                          args.freeze_params,
                          args.k, args.per_k,
                          args.dropout)
+
+def load_hemi_model(model, ckpt_path):
+    """[summary]
+
+    Args:
+        ckpt_path ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
+    sdict = torch.load(ckpt_path)['state_dict']
+    model_dict = {k.replace('model.', '').replace('hemisphere.', ''):v for k,v in sdict.items()}
+    model.load_state_dict(model_dict, strict=False)
+    return model
+
+############## THESE ONES USED BY GRADCAM AND TEST ##############
 
 def load_model(model, ckpt_path):
     """[summary]
@@ -209,20 +212,6 @@ def load_model(model, ckpt_path):
 
     model_dict = {k.replace('model.', '').replace('encoder.', ''):v for k,v in sdict.items()}
     model.load_state_dict(model_dict)
-    return model
-
-def load_hemi_model(model, ckpt_path):
-    """[summary]
-
-    Args:
-        ckpt_path ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-    sdict = torch.load(ckpt_path)['state_dict']
-    model_dict = {k.replace('model.', '').replace('hemisphere.', ''):v for k,v in sdict.items()}
-    model.load_state_dict(model_dict, strict=False)
     return model
 
 def load_bicam_model(model, ckpt_path):
@@ -258,13 +247,3 @@ def load_feat_model(model, ckpt_path):
     model_dict = {k.replace('model.', '').replace('encoder.', ''):v for k,v in sdict.items() if 'fc' not in k}
     model.load_state_dict(model_dict)
     return model
-
-def freeze_parameters(model):
-    """[summary]
-
-    Args:
-        model ([type]): [description]
-    """
-    for param in model.parameters():
-        param.requires_grad = False
-

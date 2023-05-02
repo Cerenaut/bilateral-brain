@@ -12,6 +12,9 @@ from sklearn.metrics import accuracy_score
 from utils import pil_loader, run_cli
 
 
+########## DEPRECATED IN FAVOUR OF 'evaluate' IN TRAINER ##########
+
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
