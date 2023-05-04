@@ -1,21 +1,15 @@
 from argparse import Namespace
 from typing import Optional, Dict, Any
+
+import torch
+from torch import nn
+from lightning import LightningModule
+from sklearn.metrics import accuracy_score
+
 import sys
 sys.path.append('../')
 
-import torch
-import torchvision.utils as vutils
-import torch.nn.functional as F
-from torch import Tensor, nn
-from torch.optim.optimizer import Optimizer
-
 from models.macro import bilateral, unilateral
-from lightning import LightningModule
-from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-
-from sklearn.metrics import accuracy_score
-from utils import plot_grad_flow, plot_grad_flow_v2, \
-        inverse_normalize, matplotlib_imshow
 
 
 class SupervisedLightningModule(LightningModule):
@@ -110,11 +104,11 @@ class SupervisedLightningModule(LightningModule):
         t = target (the label)
         y = output
         '''
-        img1, finey, coarsey = batch['image'], batch['fine'], batch['coarse']
-        finet, coarset = self(img1)
-        loss_fine = self.ce_loss(finet, finey) 
-        loss_coarse = self.ce_loss(coarset, coarsey)
-        return (loss_fine, loss_coarse), (finey, coarsey), (finet, coarset)
+        img1, t_fine, t_coarse = batch['image'], batch['fine'], batch['coarse']
+        y_fine, y_coarse = self(img1)
+        loss_fine = self.ce_loss(t_fine, y_fine) 
+        loss_coarse = self.ce_loss(t_coarse, y_coarse)
+        return (loss_fine, loss_coarse), (y_fine, y_coarse), (t_fine, t_coarse)
 
     def _calc_accuracy(self, outputs) -> Any:
         y_fine_arr = []     # network output
@@ -140,14 +134,19 @@ class SupervisedLightningModule(LightningModule):
         return acc_fine, acc_coarse
 
     def training_step(self, batch, batch_idx):
-        (loss_fine, loss_coarse), (finey, coarsey), (finet, coarset) = self._step(batch)
+        loss, y, t = self._step(batch)
+
+        loss_fine, loss_coarse = loss
+        y_fine, y_coarse = y
+        t_fine, t_coarse = t
+
         loss = loss_fine + loss_coarse
 
         self.log('train narrow loss', loss_fine)
         self.log('train broad loss', loss_coarse)
         self.log("train_loss", loss, on_step=False, on_epoch=True, sync_dist=True)        
     
-        step_output = (finet.detach().cpu(), finey.detach().cpu()), (coarset.detach().cpu(), coarsey.detach().cpu())
+        step_output = (y_fine.detach().cpu(), t_fine.detach().cpu()), (y_coarse.detach().cpu(), t_coarse.detach().cpu())
         self.training_step_outputs.append(step_output)
         return loss
     
@@ -158,14 +157,19 @@ class SupervisedLightningModule(LightningModule):
         self.training_step_outputs.clear()  # free memory
 
     def validation_step(self, batch, batch_idx):
-        (loss_fine, loss_coarse), (finey, coarsey), (finet, coarset) = self._step(batch)
+        loss, y, t = self._step(batch)
+        
+        loss_fine, loss_coarse = loss
+        y_fine, y_coarse = y
+        t_fine, t_coarse = t
+
         loss = loss_fine + loss_coarse
 
         self.log(f'val_loss_fine', loss_fine)
         self.log(f'val_loss_coarse', loss_coarse)
         self.log(f'val_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
 
-        step_output = (finey.detach().cpu(), finet.detach().cpu()), (coarsey.detach().cpu(), coarset.detach().cpu())
+        step_output = (y_fine.detach().cpu(), t_fine.detach().cpu()), (y_coarse.detach().cpu(), t_coarse.detach().cpu())
         self.eval_step_outputs.append(step_output)
 
     def on_validation_epoch_end(self) -> None:
@@ -175,14 +179,19 @@ class SupervisedLightningModule(LightningModule):
         self.eval_step_outputs.clear()  # free memory
 
     def test_step(self, batch, batch_idx):
-        (loss_fine, loss_coarse), (finey, coarsey), (finet, coarset) = self._step(batch)
+        loss, y, t = self._step(batch)
+        
+        loss_fine, loss_coarse = loss
+        y_fine, y_coarse = y
+        t_fine, t_coarse = t
+
         loss = loss_fine + loss_coarse
 
         self.log(f'test_loss_fine', loss_fine)
         self.log(f'test_loss_coarse', loss_coarse)
         self.log(f'test_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
 
-        step_output = (finey.detach().cpu(), finet.detach().cpu()), (coarsey.detach().cpu(), coarset.detach().cpu())
+        step_output = (y_fine.detach().cpu(), t_fine.detach().cpu()), (y_coarse.detach().cpu(), t_coarse.detach().cpu())
         self.eval_step_outputs.append(step_output)
 
     def on_test_epoch_end(self) -> None:

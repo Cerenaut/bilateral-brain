@@ -4,6 +4,7 @@ import torch.nn as nn
 from argparse import Namespace
 from models.resnet import resnet9
 from models.vgg import vgg11
+from models.sparse_resnet import sparse_resnet9
 from utils import setup_logger
 
 def check_list():

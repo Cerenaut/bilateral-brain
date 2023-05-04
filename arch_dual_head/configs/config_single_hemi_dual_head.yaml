@@ -5,7 +5,7 @@ exp_name: dual_head
 
 trainer_params:
   accelerator: gpu
-  gpus: auto
+  devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
   max_epochs: 2
   log_every_n_steps: 10
@@ -15,7 +15,7 @@ dataset:
   train_dir: ../datasets/CIFAR100/train_small/fine
   val_dir: ../datasets/CIFAR100/test_small/fine
   test_dir: ../datasets/CIFAR100/test_small/fine
-  raw_data_dir: ../datasets/cifar-100-python/  # needs a trailing slash
+  raw_data_dir: ../../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:
   type: TensorBoardLogger
@@ -32,12 +32,12 @@ hparams:
   warmup_epochs: 0
   batch_size: 256
   num_workers: 4
-  fine_k: None
-  fine_per_k: None
-  coarse_k: None
-  coarse_per_k: None
-  model_path_fine: None  # path to narrow model checkpoint
-  model_path_coarse: None  # path to broad model checkpoint
+  fine_k: 0.0
+  fine_per_k: 0.0
+  coarse_k: 0.0
+  coarse_per_k: 0.0
+  # model_path_fine: path_to_checkpoint  # path to narrow model checkpoint
+  # model_path_coarse: path_to_checkpoint  # path to broad model checkpoint
 
 ckpt_callback:
   save_top_k: 2

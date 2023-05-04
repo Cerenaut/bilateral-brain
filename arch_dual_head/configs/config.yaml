@@ -5,7 +5,7 @@ exp_name: dual_head
 
 trainer_params:
   accelerator: gpu
-  gpus: auto
+  devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
   max_epochs: 30
   log_every_n_steps: 10
@@ -15,7 +15,7 @@ dataset:
   train_dir: ../datasets/CIFAR100/train_small/fine
   val_dir: ../datasets/CIFAR100/test_small/fine
   test_dir: ../datasets/CIFAR100/test_small/fine
-  raw_data_dir: ../datasets/cifar-100-python/  # needs a trailing slash
+  raw_data_dir: ../../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:
   type: TensorBoardLogger
