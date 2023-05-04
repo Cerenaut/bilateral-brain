@@ -24,7 +24,15 @@ In this project, we use a backbone (e.g. resnet or vgg type architectures) to cr
 - **Fine/Coarse**: This project is designed for hierarchical datasets such as CIFAR100, where each image has a `fine` and a `coarse` label. `Fine` is the narrow/specific description, such as dolphin, and `Coarse` is the broad/general description, such as sea creature
 - **Architecture**: The backbone used i.e. the architecture for a single hemisphere
 - **Single/Dual Head**: The number of heads. Each head is a classifier, and can be trained on either fine labels or coarse labels
-- **Macro-architecture**: The whole network, including hemispheres and heads
+- **Macro-architecture**: The whole network, including hemispheres and heads. 
+
+There are variable number of hemispheres:
+Unilateral = 1 hemisphere
+Bilateral = 2 hemispheres
+
+There are also variable number of heads:
+Single or Dual
+
 
 
 ## The main idea

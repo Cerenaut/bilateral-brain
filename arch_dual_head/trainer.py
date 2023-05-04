@@ -1,26 +1,26 @@
 import os
 import sys
 import yaml
-import optuna
 import shutil
 import os.path as osp
-import pytorch_lightning as pl
+import lightning as pl
 from datetime import datetime
 import numpy as np
 
-from pathlib import Path
-from argparse import ArgumentParser, Namespace
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import TestTubeLogger, TensorBoardLogger
+from lightning.pytorch.loggers import TensorBoardLogger
+from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
-from .datamodule import DataModule
-from .supervised import SupervisedLightningModule
 
-import sys
-sys.path.append('../')
-from utils import run_cli, validate_path, yaml_func, setup_logger
+if __name__ == '__main__':
+    from datamodule import DataModule
+    from supervised import SupervisedLightningModule
+else:
+    from .datamodule import DataModule
+    from .supervised import SupervisedLightningModule
 
-logger = setup_logger(__name__)
+from utils import run_cli, yaml_func
+
 
 def main(config_path, logger_name='arch_dual_head') -> None:
 
@@ -53,7 +53,7 @@ def main(config_path, logger_name='arch_dual_head') -> None:
         logger = TensorBoardLogger(save_dir=save_dir, name=exp_name, version=version)
 
         trainer = pl.Trainer(**config['trainer_params'],
-                            callbacks=[ckpt_callback],
+                            callbacks=[ckpt_callback, EarlyStopping(monitor="val_acc", mode="max")],
                             logger=logger)
 
         imdm = DataModule(

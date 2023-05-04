@@ -6,8 +6,11 @@ import torchvision
 from torch.utils.data import random_split, DataLoader, ConcatDataset
 from torchvision import transforms
 from torchvision.datasets import DatasetFolder
+import lightning as pl
 
-import pytorch_lightning as pl
+import sys
+sys.path.append('../')
+from utils import setup_logger
 
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
@@ -58,6 +61,7 @@ class DataModule(pl.LightningDataModule):
         self.test_dir = test_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.logger = setup_logger()
 
     def setup(self, stage: Optional[str] = None):
         train_transform = transforms.Compose([
@@ -72,30 +76,33 @@ class DataModule(pl.LightningDataModule):
             transforms.ToTensor(),
             transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
         ])
-        self.mnist_train = UnsupervisedFolder(
+        self.data_train = UnsupervisedFolder(
             root=self.train_dir,
             transform=train_transform)
-        self.mnist_val = UnsupervisedFolder(
+        self.data_val = UnsupervisedFolder(
             root=self.val_dir,
             transform=base_transforms)
-        self.mnist_test = UnsupervisedFolder(
+        self.data_test = UnsupervisedFolder(
             root=self.test_dir,
             transform=base_transforms)
         
     def train_dataloader(self):
-        return DataLoader(self.mnist_train, 
+        # self.logger.debug(f"Train dataset size: {len(self.data_train)}")
+        return DataLoader(self.data_train, 
                             shuffle=True,
                             batch_size=self.batch_size, 
                             num_workers=self.num_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.mnist_val,
+        # self.logger.debug(f"Val dataset size: {len(self.data_val)}")
+        return DataLoader(self.data_val,
                             shuffle=False,
                             batch_size=self.batch_size,
                             num_workers=self.num_workers)
 
     def test_dataloader(self):
-        return DataLoader(self.mnist_test,
+        # self.logger.debug(f"Test dataset size: {len(self.data_test)}")
+        return DataLoader(self.data_test,
                             shuffle=False,
                             batch_size=self.batch_size,
                             num_workers=self.num_workers)

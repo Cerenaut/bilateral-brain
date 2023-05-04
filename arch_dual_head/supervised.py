@@ -10,7 +10,7 @@ from torch import Tensor, nn
 from torch.optim.optimizer import Optimizer
 
 from models.macro import bilateral, unilateral
-from pytorch_lightning import LightningModule
+from lightning import LightningModule
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 
 from sklearn.metrics import accuracy_score
@@ -47,6 +47,10 @@ class SupervisedLightningModule(LightningModule):
         self._initialize_model()
         # self._initialize_ensemble_model()
         self.ce_loss = nn.CrossEntropyLoss()
+
+        self.training_step_outputs = []
+        self.eval_step_outputs = []
+
  
     def _initialize_model(self):
         macro_arch = self.config["hparams"].get("macro_arch", None)
@@ -96,40 +100,29 @@ class SupervisedLightningModule(LightningModule):
         args = Namespace(**mydict)
         self.model = unilateral(args)
     
-    def _step(self, img1):
-        narrow, broad = self.model(img1)
-        return narrow, broad
+    def forward(self, x):
+        fine, coarse = self.model(x)
+        return fine, coarse
 
-    def training_step(self, batch, batch_idx):
+    def _step(self, batch):
+        '''
+        suffixes:
+        t = target (the label)
+        y = output
+        '''
         img1, finey, coarsey = batch['image'], batch['fine'], batch['coarse']
-        narrowt, broadt = self._step(img1)
-        loss_narr = self.ce_loss(narrowt, finey) 
-        loss_broad = self.ce_loss(broadt, coarsey)
-        loss = loss_narr + loss_broad
+        finet, coarset = self(img1)
+        loss_fine = self.ce_loss(finet, finey) 
+        loss_coarse = self.ce_loss(coarset, coarsey)
+        return (loss_fine, loss_coarse), (finey, coarsey), (finet, coarset)
 
-        self.log('train narrow loss', loss_narr)
-        self.log('train broad loss', loss_broad)
-        self.log("train_loss", loss, on_step=False,
-                 on_epoch=True, sync_dist=True)        
-        return {'loss':loss, 
-                'output':((narrowt.detach().cpu(), finey.detach().cpu()), 
-                        (broadt.detach().cpu(), coarsey.detach().cpu()))}
-    
-    def training_epoch_end(self, output: Any) -> None:
-        acc_fine, acc_coarse = self._epoch_end(output)
-        self.log('train_acc_fine', acc_fine)
-        self.log('train_acc_coarse', acc_coarse)
-
-    def _epoch_end(self, output: Any) -> Any:
+    def _calc_accuracy(self, outputs) -> Any:
         y_fine_arr = []     # network output
         t_fine_arr = []     # target labels
         y_coarse_arr = []
         t_coarse_arr = []
-        for out in output:
-            if isinstance(out, dict):
-                fine_out, coarse_out = out['output']
-            else:
-                fine_out, coarse_out = out
+        for out in outputs:
+            fine_out, coarse_out = out
             y_fine, t_fine = fine_out
             y_coarse, t_coarse = coarse_out
             _, fine_ind = torch.max(y_fine, 1)
@@ -146,37 +139,57 @@ class SupervisedLightningModule(LightningModule):
         acc_coarse = accuracy_score(t_coarse_arr, y_coarse_arr)
         return acc_fine, acc_coarse
 
-    def _eval_step(self, batch, batch_idx, loss_name):
-        img1, t_fine, t_coarse = batch['image'], batch['fine'], batch['coarse']
-        y_fine, y_coarse = self._step(img1)
-        loss_narr = self.ce_loss(y_fine, t_fine) 
-        loss_broad = self.ce_loss(y_coarse, t_coarse)
-        loss = loss_narr + loss_broad
-        
-        self.log(f'{loss_name}_fine', loss_narr)
-        self.log(f'{loss_name}_coarse', loss_broad)
-        self.log(f'{loss_name}', loss, on_step=False,
-                 on_epoch=True, sync_dist=True)
+    def training_step(self, batch, batch_idx):
+        (loss_fine, loss_coarse), (finey, coarsey), (finet, coarset) = self._step(batch)
+        loss = loss_fine + loss_coarse
 
-        return ((y_fine.detach().cpu(), t_fine.detach().cpu()), 
-                        (y_coarse.detach().cpu(), t_coarse.detach().cpu()))
-
+        self.log('train narrow loss', loss_fine)
+        self.log('train broad loss', loss_coarse)
+        self.log("train_loss", loss, on_step=False, on_epoch=True, sync_dist=True)        
+    
+        step_output = (finet.detach().cpu(), finey.detach().cpu()), (coarset.detach().cpu(), coarsey.detach().cpu())
+        self.training_step_outputs.append(step_output)
+        return loss
+    
+    def on_train_epoch_end(self) -> None:
+        acc_fine, acc_coarse = self._calc_accuracy(self.training_step_outputs)
+        self.log('train_acc_fine', acc_fine)
+        self.log('train_acc_coarse', acc_coarse)
+        self.training_step_outputs.clear()  # free memory
 
     def validation_step(self, batch, batch_idx):
-        return self._eval_step(batch, batch_idx, 'val_loss')
+        (loss_fine, loss_coarse), (finey, coarsey), (finet, coarset) = self._step(batch)
+        loss = loss_fine + loss_coarse
 
-    def validation_epoch_end(self, outputs: Any) -> None:
-        acc_fine, acc_coarse = self._epoch_end(outputs)
+        self.log(f'val_loss_fine', loss_fine)
+        self.log(f'val_loss_coarse', loss_coarse)
+        self.log(f'val_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
+
+        step_output = (finey.detach().cpu(), finet.detach().cpu()), (coarsey.detach().cpu(), coarset.detach().cpu())
+        self.eval_step_outputs.append(step_output)
+
+    def on_validation_epoch_end(self) -> None:
+        acc_fine, acc_coarse = self._calc_accuracy(self.eval_step_outputs)
         self.log(f'val_acc_fine', acc_fine)
-        self.log(f'val_acc_coarse', acc_coarse)        
+        self.log(f'val_acc_coarse', acc_coarse)
+        self.eval_step_outputs.clear()  # free memory
 
     def test_step(self, batch, batch_idx):
-        return self._eval_step(batch, batch_idx, 'test_loss')
+        (loss_fine, loss_coarse), (finey, coarsey), (finet, coarset) = self._step(batch)
+        loss = loss_fine + loss_coarse
 
-    def test_epoch_end(self, outputs: Any) -> None:
-        acc_fine, acc_coarse = self._epoch_end(outputs)
+        self.log(f'test_loss_fine', loss_fine)
+        self.log(f'test_loss_coarse', loss_coarse)
+        self.log(f'test_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
+
+        step_output = (finey.detach().cpu(), finet.detach().cpu()), (coarsey.detach().cpu(), coarset.detach().cpu())
+        self.eval_step_outputs.append(step_output)
+
+    def on_test_epoch_end(self) -> None:
+        acc_fine, acc_coarse = self._calc_accuracy(self.eval_step_outputs)
         self.log(f'test_acc_fine', acc_fine)
         self.log(f'test_acc_coarse', acc_coarse)
+        self.eval_step_outputs.clear()  # free memory
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(params=self.model.parameters(),

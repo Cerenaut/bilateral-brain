@@ -13,7 +13,7 @@ from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from torchvision.transforms.transforms import CenterCrop, Normalize, \
                         RandomErasing, RandomHorizontalFlip
 
-import pytorch_lightning as pl
+import lightning as pl
 
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')

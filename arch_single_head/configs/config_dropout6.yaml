@@ -1,11 +1,11 @@
-seeds: [7]       # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
+seeds: [8]       # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
 evaluate: True
 save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
 exp_name: single_head
 
 trainer_params:
-  accelerator: gpu
-  devices: auto
+  accelerator: null
+  gpus: 1
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
   max_epochs: 80
   log_every_n_steps: 2
@@ -28,6 +28,7 @@ hparams:
   k: 0.0
   per_k: 0.0
   num_workers: 6
+  dropout: 0.0
   # model_path: path_to_checkpoint  # source location of specific checkpoint to load
 
 ckpt_callback:

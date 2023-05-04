@@ -1,18 +1,15 @@
 import os
 import sys
 import yaml
-import optuna
 import shutil
 import os.path as osp
-import pytorch_lightning as pl
+import lightning as pl
 from datetime import datetime
 import numpy as np
-import logging
 
-from pathlib import Path
-from argparse import ArgumentParser, Namespace
-from pytorch_lightning.callbacks import ModelCheckpoint
-from pytorch_lightning.loggers import TensorBoardLogger
+from lightning.pytorch.callbacks.early_stopping import EarlyStopping
+from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.loggers import TensorBoardLogger
 
 
 if __name__ == '__main__':
@@ -21,9 +18,9 @@ if __name__ == '__main__':
 else:
     from .datamodule import DataModule
     from .supervised import SupervisedLightningModule
-from utils import run_cli, yaml_func, setup_logger
 
-logger = setup_logger(__name__)
+from utils import run_cli, yaml_func
+
 
 def main(config_path, logger_name='arch_single_head') -> None:
 
@@ -57,7 +54,7 @@ def main(config_path, logger_name='arch_single_head') -> None:
         logger = TensorBoardLogger(save_dir=save_dir, name=exp_name, version=version)
 
         trainer = pl.Trainer(**config['trainer_params'],
-                            callbacks=[ckpt_callback],
+                            callbacks=[ckpt_callback, EarlyStopping(monitor="val_acc", mode="max")],
                             logger=logger)
         imdm = DataModule(
             train_dir=config['dataset']['train_dir'],
@@ -73,6 +70,8 @@ def main(config_path, logger_name='arch_single_head') -> None:
 
         # save the config file in the results folder
         dest_dir = os.path.join(save_dir, exp_name, version)
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
         shutil.copy(config_path, f'{dest_dir}/config.yaml')
 
         if config["evaluate"]:
