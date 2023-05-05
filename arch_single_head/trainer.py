@@ -6,6 +6,7 @@ import os.path as osp
 import lightning as pl
 from datetime import datetime
 import numpy as np
+import argparse
 
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from lightning.pytorch.callbacks import ModelCheckpoint
@@ -108,5 +109,8 @@ def main(config_path, logger_name='arch_single_head') -> None:
     return checkpoints
 
 if __name__ == '__main__':
-  default_config_path = './configs/config.yaml'
-  main(default_config_path)
+    parser = argparse.ArgumentParser(description='Single hemisphere training/testing')
+    parser.add_argument('--config', type=str, default='./configs/config.yaml',
+                    help='Path to the base config file for training macro-arch with 1 head. Relative to the folder where you ran this from.')
+    args = parser.parse_args()
+    main(args.config)

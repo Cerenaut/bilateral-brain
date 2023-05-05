@@ -106,8 +106,8 @@ class SupervisedLightningModule(LightningModule):
         '''
         img1, t_fine, t_coarse = batch['image'], batch['fine'], batch['coarse']
         y_fine, y_coarse = self(img1)
-        loss_fine = self.ce_loss(t_fine, y_fine) 
-        loss_coarse = self.ce_loss(t_coarse, y_coarse)
+        loss_fine = self.ce_loss(y_fine, t_fine) 
+        loss_coarse = self.ce_loss(y_coarse, t_coarse)
         return (loss_fine, loss_coarse), (y_fine, y_coarse), (t_fine, t_coarse)
 
     def _calc_accuracy(self, outputs) -> Any:
@@ -174,6 +174,8 @@ class SupervisedLightningModule(LightningModule):
 
     def on_validation_epoch_end(self) -> None:
         acc_fine, acc_coarse = self._calc_accuracy(self.eval_step_outputs)
+        acc = acc_fine + acc_coarse
+        self.log(f'val_acc', acc)
         self.log(f'val_acc_fine', acc_fine)
         self.log(f'val_acc_coarse', acc_coarse)
         self.eval_step_outputs.clear()  # free memory
