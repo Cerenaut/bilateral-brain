@@ -86,8 +86,7 @@ class SupervisedLightningModule(LightningModule):
     def _step(self, batch, batch_idx):
         img1, label = batch
         output = self(img1)
-        loss_sim = self.ce_loss(output, label)
-        loss = loss_sim
+        loss = self.ce_loss(output, label)
         return loss, output, label
 
     def _calc_accuracy(self, outputs):

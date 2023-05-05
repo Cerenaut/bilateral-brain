@@ -62,6 +62,7 @@ def main(config_path, logger_name='arch_single_head') -> None:
             test_dir=config['dataset']['test_dir'],
             batch_size=config['hparams']['batch_size'],
             num_workers=config['hparams']['num_workers'])
+        
         trainer.fit(model, datamodule=imdm)
 
         # get the path to the best checkpoint saved by the callback
