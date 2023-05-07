@@ -144,3 +144,8 @@ The seeds will be 0, 1, ..., num_seeds-1.')
        args.num_seeds,
        args.f_chk, 
        args.c_chk)
+
+
+
+# Train single hemispheres on fine and coarse, with 5 seeds each, with vgg11 backbone
+# python train_system.py --no_bilateral --arch vgg11 --sh_base_config arch_single_head/configs/config.yaml --num_seeds 5

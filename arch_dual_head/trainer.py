@@ -23,7 +23,7 @@ else:
 from utils import run_cli, yaml_func
 
 
-def main(config_path, logger_name='arch_dual_head') -> None:
+def main(config_path) -> None:
 
     config = run_cli(config_path=config_path)
     seeds = config['seeds']
@@ -31,6 +31,8 @@ def main(config_path, logger_name='arch_dual_head') -> None:
     accuracies_fine = []    # one for each seed
     accuracies_coarse = []  # one for each seed
     for seed in seeds:
+        print(f"Running seed {seed}")
+
         if seed is not None:
             pl.seed_everything(seed)
 

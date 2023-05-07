@@ -13,6 +13,7 @@ exp_name: single_head
 hparams:
   arch: vgg11
   batch_size: 256
+  dropout: 0.6
   k: 0.0
   lr: 0.0001
   mode: fine
@@ -25,10 +26,13 @@ save_dir: ./runs/
 seeds:
 - 0
 - 1
+- 2
+- 3
+- 4
 trainer_params:
-  accelerator: null
+  accelerator: gpu
   default_root_dir: ./runs
-  gpus: 1
+  devices: auto
   gradient_clip_val: 10
   log_every_n_steps: 2
-  max_epochs: 50
+  max_epochs: 100

@@ -8,7 +8,6 @@ from datetime import datetime
 import numpy as np
 import argparse
 
-from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 
@@ -55,7 +54,7 @@ def main(config_path, logger_name='arch_single_head') -> None:
         logger = TensorBoardLogger(save_dir=save_dir, name=exp_name, version=version)
 
         trainer = pl.Trainer(**config['trainer_params'],
-                            callbacks=[ckpt_callback, EarlyStopping(monitor="val_acc", mode="max")],
+                            callbacks=[ckpt_callback],
                             logger=logger)
         imdm = DataModule(
             train_dir=config['dataset']['train_dir'],
