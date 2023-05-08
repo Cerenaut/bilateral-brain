@@ -13,12 +13,12 @@ from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 
 
-if __name__ == '__main__':
-    from datamodule import DataModule
-    from supervised import SupervisedLightningModule
-else:
-    from .datamodule import DataModule
-    from .supervised import SupervisedLightningModule
+# if __name__ == '__main__':
+from datamodule import DataModule
+from supervised import SupervisedLightningModule
+# else:
+#     from .datamodule import DataModule
+#     from .supervised import SupervisedLightningModule
 
 from utils import run_cli, yaml_func
 
