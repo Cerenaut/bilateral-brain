@@ -10,7 +10,6 @@ import argparse
 
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
-from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
 
 if __name__ == '__main__':
@@ -56,7 +55,7 @@ def main(config_path) -> None:
         logger = TensorBoardLogger(save_dir=save_dir, name=exp_name, version=version)
 
         trainer = pl.Trainer(**config['trainer_params'],
-                            callbacks=[ckpt_callback, EarlyStopping(monitor="val_acc", mode="max")],
+                            callbacks=[ckpt_callback],
                             logger=logger)
 
         imdm = DataModule(

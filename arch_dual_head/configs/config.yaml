@@ -7,14 +7,15 @@ trainer_params:
   accelerator: gpu
   devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 30
-  log_every_n_steps: 10
-  accumulate_grad_batches: 2
+  max_epochs: 80
+  log_every_n_steps: 50
+  check_val_every_n_epoch: 2
+  accumulate_grad_batches: 1
 
 dataset:
-  train_dir: ../datasets/CIFAR100/train_small/fine
-  val_dir: ../datasets/CIFAR100/test_small/fine
-  test_dir: ../datasets/CIFAR100/test_small/fine
+  train_dir: ../datasets/CIFAR100/train/fine
+  val_dir: ../datasets/CIFAR100/test/fine
+  test_dir: ../datasets/CIFAR100/test/fine
   raw_data_dir: ../../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:

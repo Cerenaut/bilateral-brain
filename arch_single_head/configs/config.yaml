@@ -7,9 +7,10 @@ trainer_params:
   accelerator: gpu
   devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 100
-  log_every_n_steps: 2
-  gradient_clip_val: 10
+  max_epochs: 80
+  log_every_n_steps: 50
+  check_val_every_n_epoch: 2
+  accumulate_grad_batches: 1
 
 dataset:
   train_dir: ../datasets/CIFAR100/train/coarse
@@ -29,7 +30,7 @@ hparams:
   per_k: 0.0
   num_workers: 6
   dropout: 0.6
-  # model_path: path_to_checkpoint  # source location of specific checkpoint to load
+  model_path: ../runs/single_head-vgg11-fine/20230507190242-seed0/checkpoints/last.ckpt  # source location of specific checkpoint to load
 
 ckpt_callback:
   save_top_k: 2
