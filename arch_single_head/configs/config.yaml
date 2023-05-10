@@ -21,7 +21,7 @@ logger:
   type: TensorBoardLogger
 
 hparams:
-  arch: 'vg11'                # [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  arch: 'vgg11'                # [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
   mode: 'coarse'              # the one head configuration:    [fine | coarse | feature]
   lr: 1.0e-4
   weight_decay: 1.0e-3
@@ -30,7 +30,7 @@ hparams:
   per_k: 0.0
   num_workers: 6
   dropout: 0.6
-  model_path: ../runs/single_head-vgg11-fine/20230507190242-seed0/checkpoints/last.ckpt  # source location of specific checkpoint to load
+  model_path: ''  # source location of specific checkpoint to load
 
 ckpt_callback:
   save_top_k: 2
