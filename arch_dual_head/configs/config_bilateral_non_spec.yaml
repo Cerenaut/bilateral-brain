@@ -1,15 +1,15 @@
 seeds: [4]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
 evaluate: True
 save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
-exp_name: dual_head
+exp_name: bilateral_no_spec
 
 trainer_params:
   accelerator: gpu
   devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 80
+  max_epochs: 200
   log_every_n_steps: 50
-  check_val_every_n_epoch: 1
+  check_val_every_n_epoch: 2
   accumulate_grad_batches: 1
 
 dataset:
@@ -24,10 +24,10 @@ logger:
 hparams:
   mode: 'both'              # where to get output from:     [both | feature]
   macro_arch: 'bilateral'   # unilateral or bilateral. If unilateral, use farch
-  farch: 'resnet9'          # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
-  carch: 'resnet9'          # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
-  ffreeze: True
-  cfreeze: True
+  farch: 'vgg11'          # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  carch: 'vgg11'          # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
+  ffreeze: False
+  cfreeze: False
   lr: 1.0e-4
   weight_decay: 1.0e-5
   warmup_epochs: 0
@@ -38,8 +38,8 @@ hparams:
   coarse_k: None
   coarse_per_k: None
   dropout: 0.6
-  model_path_fine: ''   # path to narrow model checkpoint
-  model_path_coarse: ''  # path to broad model checkpoint
+  # model_path_fine: ''   # path to narrow model checkpoint
+  # model_path_coarse: ''  # path to broad model checkpoint
 
 ckpt_callback:
   save_top_k: 2
