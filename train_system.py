@@ -113,7 +113,7 @@ if __name__ == '__main__':
   parser.add_argument('--no_bilateral', dest='no_bilateral', action='store_true',
                       help='Train the hemispheres, but don\'t continue to the bilateral architecture.')
   parser.set_defaults(no_bilateral=False)
-  parser.add_argument('--num_seeds', type=int, default='num_seeds',
+  parser.add_argument('--num_seeds', type=int, default='1',
                       help='The number of seeds to do for each hemisphere, and hence the bilateral architecture (there will be one for each trained pair of hemispheres). \
 The seeds will be 0, 1, ..., num_seeds-1.')
 
