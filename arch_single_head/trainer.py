@@ -22,7 +22,7 @@ else:
 from utils import run_cli, yaml_func
 
 
-def main(config_path, logger_name='arch_single_head') -> None:
+def main(config_path) -> None:
 
     config = run_cli(config_path=config_path)
     seeds = config['seeds']

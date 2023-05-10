@@ -7,7 +7,6 @@ import arch_single_head.trainer as tr_single
 import arch_dual_head.trainer as tr_dual
 from utils import run_cli, mod_filename
 
-LOGGER_NAME = 'train_system'
 
 data = {'fine': {}, 'coarse': {}}
 data['fine']['train'] = 'datasets/CIFAR100/train/fine'
@@ -43,7 +42,7 @@ def train_hemispheres(arch, base_config_path, num_seeds):
       yaml.safe_dump(doc, out)
 
     # run the experiment
-    checkpoints = tr_single.main(new_config_path, logger_name=LOGGER_NAME)
+    checkpoints = tr_single.main(new_config_path)
     checkpoints_dict[label_type] = checkpoints
 
   return checkpoints_dict['fine'], checkpoints_dict['coarse']
@@ -81,7 +80,7 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
       yaml.safe_dump(doc, out)
 
     # run the experiment
-    tr_dual.main(new_config_path, logger_name=LOGGER_NAME)
+    tr_dual.main(new_config_path)
     i += 1
 
 

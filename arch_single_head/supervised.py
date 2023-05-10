@@ -126,7 +126,7 @@ class SupervisedLightningModule(LightningModule):
     def test_step(self, batch, batch_idx):
         loss, output, t = self._step(batch, batch_idx)
         self.log('test_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
-        self.test_step_outputs.append(output.detach().cpu(), t.detach().cpu())
+        self.test_step_outputs.append((output.detach().cpu(), t.detach().cpu()))
 
     def on_test_epoch_end(self) -> None:
         acc = self._calc_accuracy(self.test_step_outputs)
