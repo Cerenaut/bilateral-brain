@@ -8,6 +8,7 @@ dataset:
   test_dir: datasets/CIFAR100/test/fine
   train_dir: datasets/CIFAR100/train/fine
   val_dir: datasets/CIFAR100/test/fine
+epochs: 200
 evaluate: true
 exp_name: single_head
 hparams:
@@ -25,6 +26,10 @@ logger:
 save_dir: ./runs/
 seeds:
 - 0
+- 1
+- 2
+- 3
+- 4
 trainer_params:
   accelerator: gpu
   accumulate_grad_batches: 1

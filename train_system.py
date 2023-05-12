@@ -41,7 +41,7 @@ def train_hemispheres(arch, base_config_path, num_seeds, epochs):
     doc['dataset']['raw_data_dir'] = data['raw']
 
     if epochs is not None:
-      doc['epochs'] = epochs_dict[label_type]
+      doc['trainer_params']['max_epochs'] = epochs_dict[label_type]
 
     # write the config
     new_config_path = mod_filename(base_config_path, f'config-{label_type}')
@@ -82,7 +82,7 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
     doc['dataset']['raw_data_dir'] = data['raw']
 
     if epochs is not None:
-      doc['epochs'] = epochs_dict['bilateral']
+      doc['trainer_params']['max_epochs'] = epochs_dict['bilateral']
 
     # write the config
     new_config_path = mod_filename(base_config_path, f'config-bilateral-{i}')
@@ -169,4 +169,4 @@ The seeds will be 0, 1, ..., num_seeds-1.')
 
 
 # Train single hemispheres on fine and coarse, with 5 seeds each, with vgg11 backbone
-# python train_system.py --no_bilateral --arch vgg11 --sh_base_config arch_single_head/configs/config.yaml --num_seeds 5 --epochs 200 200 100
+# python train_system.py --no_bilateral --arch vgg11 --num_seeds 5 --epochs 200 200 100
