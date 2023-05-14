@@ -35,10 +35,12 @@ def main(config_path) -> None:
         if seed is not None:
             pl.seed_everything(seed)
 
+        monitor_var = config['ckpt_callback']['monitor']
         ckpt_callback = ModelCheckpoint(
-            filename='{epoch}-{val_loss:.2f}',
+            filename='{epoch}-{' + monitor_var + ':.3f}',
             **config['ckpt_callback'],
         )
+
         if 'callbacks' in config['trainer_params']:
             config['trainer_params']['callbacks'] = yaml_func(
                 config['trainer_params']['callbacks'])
@@ -48,7 +50,14 @@ def main(config_path) -> None:
         model = SupervisedLightningModule(config)
 
         save_dir = config['save_dir']
-        exp_name = f"{config['exp_name']}-{config['hparams']['macro_arch']}-{config['hparams']['farch']}-{config['hparams']['carch']}-{config['hparams']['mode']}"
+        arch_string = ''
+        if config['hparams']['macro_arch'] == 'ensemble':
+            model_path_list = config['hparams']['farch']
+            arch_string = f"{len(model_path_list)}x{config['hparams']['farch']}"
+        else:
+            arch_string = f"{config['hparams']['farch']}-{config['hparams']['carch']}"  # default name
+
+        exp_name = f"{config['exp_name']}-{config['hparams']['macro_arch']}-{arch_string}-{config['hparams']['mode']}"
         date_time = datetime.now().strftime("%Y%m%d%H%M%S")
         version = f"{date_time}-seed{seed}"
         

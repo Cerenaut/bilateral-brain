@@ -4,8 +4,8 @@ save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
 exp_name: dual_head
 
 trainer_params:
-  accelerator: mps
-  devices: 1
+  accelerator: auto
+  devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
   max_epochs: 80
   log_every_n_steps: 50
@@ -23,11 +23,9 @@ logger:
 
 hparams:
   mode: 'both'              # where to get output from:     [both | feature]
-  macro_arch: 'bilateral'   # unilateral or bilateral. If unilateral, use farch
-  farch: 'resnet9'          # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
-  carch: 'resnet9'          # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
+  macro_arch: 'ensemble'    # unilateral or bilateral. If unilateral, use farch
+  farch: 'vgg11'            # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
   ffreeze: True
-  cfreeze: True
   lr: 1.0e-4
   weight_decay: 1.0e-5
   warmup_epochs: 0
@@ -35,11 +33,12 @@ hparams:
   num_workers: 4
   fine_k: None
   fine_per_k: None
-  coarse_k: None
-  coarse_per_k: None
   dropout: 0.6
-  model_path_fine: ''   # path to narrow model checkpoint
-  model_path_coarse: ''  # path to broad model checkpoint
+  model_path_fine: [
+    /home/gideon/Dev/bilateral-brain/arch_single_head/runs/single_head-vgg11-coarse/20230513144945-seed2/checkpoints/epoch=131-val_acc=0.673.ckpt,
+    /home/gideon/Dev/bilateral-brain/arch_single_head/runs/single_head-vgg11-coarse/20230513164132-seed3/checkpoints/epoch=148-val_acc=0.682.ckpt,
+    /home/gideon/Dev/bilateral-brain/arch_single_head/runs/single_head-vgg11-coarse/20230513184516-seed4/checkpoints/epoch=115-val_acc=0.681.ckpt
+  ]   # list of paths to model checkpoints
 
 ckpt_callback:
   save_top_k: 2

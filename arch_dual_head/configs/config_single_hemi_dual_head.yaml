@@ -42,6 +42,6 @@ hparams:
 
 ckpt_callback:
   save_top_k: 2
-  monitor: val_loss
+  monitor: val_acc
   mode: min
   save_last: True

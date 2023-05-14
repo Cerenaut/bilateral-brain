@@ -69,7 +69,6 @@ class SupervisedLightningModule(LightningModule):
             args = Namespace(**mydict)
             self.model = bilateral(args)
         elif macro_arch == 'unilateral' or macro_arch == 'ensemble':
-            print("----- **UNILATERAL** macro-architecture")
 
             mydict = {
                 "mode": self.config["hparams"]["mode"],
@@ -83,8 +82,10 @@ class SupervisedLightningModule(LightningModule):
             args = Namespace(**mydict)
 
             if macro_arch == 'unilateral':
+                print("----- **UNILATERAL** macro-architecture")
                 self.model = unilateral(args)
             else:
+                print("----- **ENSEMBLE** macro-architecture")
                 self.model = ensemble(args)
         else:
             raise ValueError(f"Invalid macro architecture: {macro_arch}")

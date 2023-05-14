@@ -34,8 +34,9 @@ def main(config_path) -> None:
         if seed is not None:
             pl.seed_everything(seed)
 
+        monitor_var = config['ckpt_callback']['monitor']
         ckpt_callback = ModelCheckpoint(
-            filename='{epoch}-{val_acc:.3f}',
+            filename='{epoch}-{' + monitor_var + ':.3f}',
             **config['ckpt_callback'],
         )
         if 'callbacks' in config['trainer_params']:
