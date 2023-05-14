@@ -142,8 +142,8 @@ class SupervisedLightningModule(LightningModule):
 
         loss = loss_fine + loss_coarse
 
-        self.log('train narrow loss', loss_fine)
-        self.log('train broad loss', loss_coarse)
+        self.log('train_narrow_loss', loss_fine)
+        self.log('train_broad_loss', loss_coarse)
         self.log("train_loss", loss, on_step=False, on_epoch=True, sync_dist=True)        
     
         step_output = (y_fine.detach().cpu(), t_fine.detach().cpu()), (y_coarse.detach().cpu(), t_coarse.detach().cpu())

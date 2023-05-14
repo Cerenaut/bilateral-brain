@@ -33,10 +33,10 @@ hparams:
   # model_path: ''  # source location of specific checkpoint to load
 
 ckpt_callback:
-  save_top_k: 2
+  save_top_k: 1
   monitor: val_acc
   mode: max
-  save_last: True
+  save_last: False
 
 
 
