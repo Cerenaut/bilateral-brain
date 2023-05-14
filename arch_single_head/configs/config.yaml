@@ -7,10 +7,10 @@ trainer_params:
   accelerator: auto
   devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 80
-  check_val_every_n_epoch: 2
+  max_epochs: 150
   log_every_n_steps: 50
-  gradient_clip_val: 10
+  check_val_every_n_epoch: 1
+  accumulate_grad_batches: 1
 
 dataset:
   train_dir: ../datasets/CIFAR100/train/coarse
@@ -21,7 +21,7 @@ logger:
   type: TensorBoardLogger
 
 hparams:
-  arch: 'resnet9'               # [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  arch: 'vgg11'                # [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
   mode: 'coarse'              # the one head configuration:    [fine | coarse | feature]
   lr: 1.0e-4
   weight_decay: 1.0e-3
@@ -29,7 +29,8 @@ hparams:
   k: 0.0
   per_k: 0.0
   num_workers: 6
-  # model_path: path_to_checkpoint  # source location of specific checkpoint to load
+  dropout: 0.6
+  # model_path: ''  # source location of specific checkpoint to load
 
 ckpt_callback:
   save_top_k: 2

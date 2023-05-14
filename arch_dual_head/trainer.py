@@ -10,7 +10,6 @@ import argparse
 
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
-from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 
 
 if __name__ == '__main__':
@@ -23,7 +22,7 @@ else:
 from utils import run_cli, yaml_func
 
 
-def main(config_path, logger_name='arch_dual_head') -> None:
+def main(config_path) -> None:
 
     config = run_cli(config_path=config_path)
     seeds = config['seeds']
@@ -31,6 +30,8 @@ def main(config_path, logger_name='arch_dual_head') -> None:
     accuracies_fine = []    # one for each seed
     accuracies_coarse = []  # one for each seed
     for seed in seeds:
+        print(f"Running seed {seed}")
+
         if seed is not None:
             pl.seed_everything(seed)
 
@@ -54,7 +55,7 @@ def main(config_path, logger_name='arch_dual_head') -> None:
         logger = TensorBoardLogger(save_dir=save_dir, name=exp_name, version=version)
 
         trainer = pl.Trainer(**config['trainer_params'],
-                            callbacks=[ckpt_callback, EarlyStopping(monitor="val_acc", mode="max")],
+                            callbacks=[ckpt_callback],
                             logger=logger)
 
         imdm = DataModule(

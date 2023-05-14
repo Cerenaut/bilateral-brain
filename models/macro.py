@@ -46,14 +46,14 @@ class BilateralNet(nn.Module):
         self.coarse_hemi = globals()[farch](Namespace(**{"k": coarse_k, "k_percent": coarse_per_k,}))            
 
         # load the saved trained parameters, and freeze from further training
-        if fmodel_path is not None:
+        if fmodel_path is not None and fmodel_path != '':
             str = "------- Load fine hemisphere"
             load_hemi_model(self.fine_hemi, fmodel_path)
             if ffreeze_params:
                 freeze_params(self.fine_hemi)
                 str += ",      ---> and freeze"
             self.logger.debug(str)
-        if cmodel_path is not None:
+        if cmodel_path is not None and cmodel_path != '':
             str = "------- Load coarse hemisphere"
             load_hemi_model(self.coarse_hemi, cmodel_path)
             if cfreeze_params:
@@ -120,7 +120,7 @@ class UnilateralNet(nn.Module):
         self.hemisphere = globals()[arch](Namespace(**{"k": k, "k_percent": per_k,}))
 
         # load the saved trained parameters, and freeze from further training (ONLY IF NOT IN AN ENSEMBLE)
-        if not for_ensemble and model_path is not None:
+        if not for_ensemble and model_path is not None and model_path != '':
             self.logger.debug(f"------- Load hemisphere from checkpoint: {model_path}")
             load_hemi_model(self.hemisphere, model_path)
             if freeze_params:
