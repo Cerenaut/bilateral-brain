@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 import sys
 sys.path.append('../')
 
+import numpy as np
 import torch
 import torchvision.utils as vutils
 import torch.nn.functional as F
@@ -104,23 +105,23 @@ class SupervisedLightningModule(LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss, output, label = self._step(batch, batch_idx)
-        self.log("train_loss", loss, on_step=True, on_epoch=False)
+        self.log("train_loss", np.float32(loss), on_step=True, on_epoch=False)
         self.training_step_outputs.append((output.detach().cpu(), label.detach().cpu()))
         return loss
     
     def on_train_epoch_end(self) -> None:
         acc = self._calc_accuracy(self.training_step_outputs)
-        self.log('train_acc', acc)
+        self.log('train_acc', np.float32(acc))
         self.training_step_outputs.clear()  # free memory
 
     def validation_step(self, batch, batch_idx):
         loss, output, label = self._step(batch, batch_idx)
-        self.log('val_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log('val_loss', np.float32(loss), on_step=False, on_epoch=True, sync_dist=True)
         self.validation_step_outputs.append((output.detach().cpu(), label.detach().cpu()))
 
     def on_validation_epoch_end(self) -> None:
         acc = self._calc_accuracy(self.validation_step_outputs)
-        self.log('val_acc', acc)
+        self.log('val_acc', np.float32(acc))
         self.validation_step_outputs.clear()  # free memory
 
     def test_step(self, batch, batch_idx):
@@ -130,7 +131,7 @@ class SupervisedLightningModule(LightningModule):
 
     def on_test_epoch_end(self) -> None:
         acc = self._calc_accuracy(self.test_step_outputs)
-        self.log('test_acc', acc)
+        self.log('test_acc', np.float32(acc))
         self.test_step_outputs.clear()  # free memory
 
     def configure_optimizers(self):

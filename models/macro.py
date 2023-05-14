@@ -1,6 +1,7 @@
 
 import torch
 import torch.nn as nn
+import numpy as np
 from argparse import Namespace
 from models.resnet import resnet9
 from models.vgg import vgg11
@@ -94,7 +95,8 @@ class UnilateralNet(nn.Module):
                  model_path: str,
                  freeze_params: bool,
                  k: float, per_k: float,
-                 dropout: float):
+                 dropout: float,
+                 for_ensemble: bool = False):
         """ Initialize UnilateralNet
 
         Args:
@@ -109,13 +111,16 @@ class UnilateralNet(nn.Module):
         self.logger = setup_logger()
         self.logger.debug(f"------- Initialize UnilateralNet with mode: {mode}, arch: {arch}, model_path: {model_path}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
 
-        self.mode = mode
-        
+        if for_ensemble:
+            self.mode = 'both'
+        else:
+            self.mode = mode
+
         # create the hemispheres
         self.hemisphere = globals()[arch](Namespace(**{"k": k, "k_percent": per_k,}))
 
-        # load the saved trained parameters, and freeze from further training
-        if model_path is not None and model_path != '':
+        # load the saved trained parameters, and freeze from further training (ONLY IF NOT IN AN ENSEMBLE)
+        if not for_ensemble and model_path is not None and model_path != '':
             self.logger.debug(f"------- Load hemisphere from checkpoint: {model_path}")
             load_hemi_model(self.hemisphere, model_path)
             if freeze_params:
@@ -127,7 +132,7 @@ class UnilateralNet(nn.Module):
         self.logger.debug(f"-- num_features: {num_features}")
 
         if self.mode not in check_list():
-            raise Exception('Mode of unilateral network does not match')
+            raise ValueError('Mode of unilateral network does not match')
         
         if self.mode == 'fine' or self.mode == 'both':        
             self.fine_head = nn.Sequential(
@@ -153,6 +158,49 @@ class UnilateralNet(nn.Module):
             return fh, ch
         elif self.mode == 'feature':
             return embed
+
+
+class EnsembleNet(nn.Module):
+    """
+    An Ensemble network with multiple models, each with two heads.
+    Designed for EVALUATION ONLY of a set of trained models.
+    """
+
+    def __init__(self,
+                 mode: str,
+                 arch: str,
+                 model_path_list: list,
+                 freeze_params: bool,
+                 k: float, per_k: float,
+                 dropout: float):
+        """ Initialize EnsembleNet
+
+        Args:
+            arch (str): architecture for the hemisphere
+            mode (str): which heads to create and where to get output
+                                both = create fine and coarse heads, get classification output
+                                fine, coarse = just fine or coarse, get classification output
+                                features = don't create heads, get output features as output
+        """
+        super(EnsembleNet, self).__init__()
+        
+        self.logger = setup_logger()
+        self.logger.debug(f"------- Initialize EnsembleNet with mode: {mode}, arch: {arch}, model_path: {model_path}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
+
+        self.model_list = []
+        self.y_list = np.zeros((len(model_path_list)))
+        for model_path in model_path_list:
+            model = EnsembleNet(mode, arch, model_path, freeze_params, k, per_k, dropout, for_ensemble=True)
+            self.model_list.append(model)
+
+    def forward(self, x):
+        outputs = []
+        for model in self.model_list:
+            outputs.append(model(x))
+
+        avg_output = torch.mean(torch.stack(outputs), dim=0)
+        return avg_output
+
 
 def freeze_params(model):
     for param in model.parameters():
@@ -180,6 +228,15 @@ def unilateral(args):
                          args.freeze_params,
                          args.k, args.per_k,
                          args.dropout)
+
+def ensemble(args):
+    return EnsembleNet(args.mode,
+                       args.arch,
+                       args.model_path, 
+                       args.freeze_params,
+                       args.k, args.per_k,
+                       args.dropout)
+
 
 def load_hemi_model(model, ckpt_path):
     """[summary]

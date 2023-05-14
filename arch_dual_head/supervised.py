@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score
 import sys
 sys.path.append('../')
 
-from models.macro import bilateral, unilateral
+from models.macro import bilateral, unilateral, ensemble
 
 
 class SupervisedLightningModule(LightningModule):
@@ -35,11 +35,9 @@ class SupervisedLightningModule(LightningModule):
         self.weight_decay = self.config['hparams']['weight_decay']
         self.learning_rate = self.config['hparams']['lr']
         # self.warmup_epochs = self.config['hparams']['warmup_epochs']
-        # self.max_epochs = self.config['trainer_params']['max_epochs']
 
-        # TODO add config param to specify model or ensemble model
         self._initialize_model()
-        # self._initialize_ensemble_model()
+
         self.ce_loss = nn.CrossEntropyLoss()
 
         self.training_step_outputs = []
@@ -47,6 +45,9 @@ class SupervisedLightningModule(LightningModule):
 
  
     def _initialize_model(self):
+        '''
+        Assumes that if it's an ensemble model, that all models have identical hparams
+        '''
         macro_arch = self.config["hparams"].get("macro_arch", None)
         if macro_arch == 'bilateral' or macro_arch == None:
             print("----- **BILATERAL** macro-architecture")
@@ -67,7 +68,7 @@ class SupervisedLightningModule(LightningModule):
                 }
             args = Namespace(**mydict)
             self.model = bilateral(args)
-        else:
+        elif macro_arch == 'unilateral' or macro_arch == 'ensemble':
             print("----- **UNILATERAL** macro-architecture")
 
             mydict = {
@@ -80,19 +81,13 @@ class SupervisedLightningModule(LightningModule):
                 "dropout": self.config["hparams"].get("dropout", 0.0),
                 }
             args = Namespace(**mydict)
-            self.model = unilateral(args)
-    
-    def _initialize_ensemble_model(self):
-        self.k = None
-        self.k_percent = None
-        mydict = {
-                    "mode": self.mode, 
-                    "arch": self.arch,
-                    "k": self.k, 
-                    "k_percent":self.k_percent
-                }
-        args = Namespace(**mydict)
-        self.model = unilateral(args)
+
+            if macro_arch == 'unilateral':
+                self.model = unilateral(args)
+            else:
+                self.model = ensemble(args)
+        else:
+            raise ValueError(f"Invalid macro architecture: {macro_arch}")
     
     def forward(self, x):
         fine, coarse = self.model(x)

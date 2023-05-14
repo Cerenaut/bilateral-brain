@@ -39,6 +39,18 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "arch_dual_head -> unilateral, dual head",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/arch_dual_head",
+            "program": "trainer.py",
+            "args": ["--config", "./configs/config_single_hemi_dual_head.yaml"],
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+            "console": "integratedTerminal"
+        },        
+        {
             "name": "train_system",
             "type": "python",
             "request": "launch",
