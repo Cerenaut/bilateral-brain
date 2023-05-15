@@ -131,10 +131,10 @@ def main(config_path) -> None:
 
         trainer = pl.Trainer(**config['trainer_params'],
                             callbacks=[ckpt_callback],
-                            logger=logger,
-                            limit_train_batches=0.05,
-                            limit_val_batches=0.1,
-                            limit_test_batches=0.1)
+                            logger=logger)
+                            # limit_train_batches=0.05,
+                            # limit_val_batches=0.1,
+                            # limit_test_batches=0.1)
 
 
         imdm = DataModule(mode_heads,
