@@ -11,7 +11,6 @@ import argparse
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 
-from datamodule_dual_heads import DataModuleDualHeads
 from datamodule import DataModule
 from supervised_dual_head import SupervisedLightningModuleDualHead
 from supervised_single_head import SupervisedLightningModuleSingleHead
@@ -134,24 +133,14 @@ def main(config_path) -> None:
                             callbacks=[ckpt_callback],
                             logger=logger)
 
-        if mode_heads == 'both':
-            imdm = DataModuleDualHeads(
-                train_dir=config['dataset']['train_dir'],
-                val_dir=config['dataset']['test_dir'],
-                test_dir=config['dataset']['test_dir'],
-                raw_data_dir=config['dataset']['raw_data_dir'],
-                batch_size=config['hparams']['batch_size'],
-                num_workers=config['hparams']['num_workers'],
-                split=False,
-                split_file=None)
-        else:
-            imdm = DataModule(
-                train_dir=config['dataset']['train_dir'],
-                val_dir=config['dataset']['test_dir'],
-                test_dir=config['dataset']['test_dir'],
-                batch_size=config['hparams']['batch_size'],
-                num_workers=config['hparams']['num_workers'])
-                        
+
+        imdm = DataModule(mode_heads,
+                          train_dir=config['dataset']['train_dir'],
+                          test_dir=config['dataset']['test_dir'],
+                          raw_data_dir=config['dataset'].get('raw_data_dir', None),
+                          batch_size=config['hparams']['batch_size'],
+                          num_workers=config['hparams']['num_workers'])
+
         if mode_hemis != 'ensemble':
             trainer.fit(model, datamodule=imdm)
             
@@ -176,9 +165,9 @@ def main(config_path) -> None:
     if config["evaluate"]:
         
         if mode_out == 'both':
-            results = collect_results_dual(seed, result, runs, accuracies)
+            results = collect_results_dual(runs, accuracies)
         else:
-            results = collect_results_single(seed, result, runs, accuracies)
+            results = collect_results_single(runs, accuracies)
 
         # write the results list to a yaml file
         with open(f'{dest_dir}/results.yaml', 'w') as f:

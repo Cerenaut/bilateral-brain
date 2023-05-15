@@ -115,9 +115,9 @@ if __name__ == '__main__':
   # add arguments
   parser.add_argument('--arch', type=str, default='resnet9', choices=['resnet9', 'vgg11'],
                       help='Architecture of the model')
-  parser.add_argument('--sh_base_config', type=str, default='arch_single_head/configs/config.yaml',
+  parser.add_argument('--uni_base_config', type=str, default='arch_single_head/configs/config.yaml',
                       help='Path to the base config file for training individual hemisphers (with single head). Relative to the current folder.')
-  parser.add_argument('--dh_base_config', type=str, default='arch_dual_head/configs/config.yaml',
+  parser.add_argument('--bi_base_config', type=str, default='arch_dual_head/configs/config.yaml',
                       help='Path to the base config file for training the whole bilateral network (with dual heads).  Relative to the current folder.')
   parser.add_argument('--no_bilateral', dest='no_bilateral', action='store_true',
                       help='Train the hemispheres, but don\'t continue to the bilateral architecture.')
@@ -140,8 +140,8 @@ The seeds will be 0, 1, ..., num_seeds-1.')
 
   # access the arguments
   print(f"arch: {args.arch}")
-  print(f"sh_base_config: {args.sh_base_config}")
-  print(f"dh_base_config: {args.dh_base_config}")
+  print(f"uni_base_config: {args.uni_base_config}")
+  print(f"bi_base_config: {args.bi_base_config}")
   print(f"no_bilateral: {args.no_bilateral}")
   print(f"num_seeds: {args.num_seeds}")
   print(f"epochs: {args.epochs}")
@@ -158,8 +158,8 @@ The seeds will be 0, 1, ..., num_seeds-1.')
     epochs_dict['bilateral'] = args.epochs[2]
 
   main(args.arch, 
-       args.sh_base_config, 
-       args.dh_base_config, 
+       args.uni_base_config, 
+       args.bi_base_config, 
        args.no_bilateral, 
        args.num_seeds,
        args.epochs,
