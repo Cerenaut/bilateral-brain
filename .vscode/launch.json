@@ -4,8 +4,6 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
-    
         {
             "name": "Python: Current File",
             "type": "python",
@@ -61,6 +59,18 @@
                 "PYTHONPATH": "${workspaceRoot}"
             },
             "console": "integratedTerminal",
+        },        
+        {
+            "name": "arch_dual_head / ensemble",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/arch_dual_head",
+            "program": "trainer.py",
+            "args": ["--config", "./configs/config_ensemble.yaml"],
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+            "console": "integratedTerminal"
         },        
     ]
 }

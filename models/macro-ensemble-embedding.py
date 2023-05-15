@@ -7,8 +7,9 @@ from models.resnet import resnet9
 from models.vgg import vgg11
 from models.sparse_resnet import sparse_resnet9
 from utils import setup_logger
+import logging
 
-logger = setup_logger(__name__)
+logger = logging.getLogger(__name__)
 
 def check_list():
     return ['fine', 'coarse', 'both', 'feature']
@@ -71,6 +72,7 @@ class BilateralNet(nn.Module):
         # add heads
         num_features = self.fine_hemi.num_features + self.coarse_hemi.num_features
         logger.debug(f"-- num_features: {num_features}")
+
         self.fine_head = add_head(num_features, 100, dropout)
         self.coarse_head = add_head(num_features, 20, dropout)
 
@@ -111,6 +113,7 @@ class UnilateralNet(nn.Module):
         """
         super(UnilateralNet, self).__init__()
         
+        logger = setup_logger()
         logger.debug(f"------- Initialize UnilateralNet with mode: {mode}, arch: {arch}, model_path: {model_path}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
 
         if for_ensemble:
@@ -120,6 +123,14 @@ class UnilateralNet(nn.Module):
 
         # create the hemispheres
         self.hemisphere = globals()[arch](Namespace(**{"k": k, "k_percent": per_k,}))
+
+        # load the saved trained parameters, and freeze from further training (ONLY IF NOT IN AN ENSEMBLE)
+        if not for_ensemble and model_path is not None and model_path != '':
+            logger.debug(f"------- Load hemisphere from checkpoint: {model_path}")
+            load_hemi_model(self.hemisphere, model_path)
+            if freeze_params:
+                logger.debug(f"------- Freeze hemisphere parameters")
+                freeze_params(self.hemisphere)
         
         # add heads
         num_features = self.hemisphere.num_features
@@ -174,13 +185,19 @@ class EnsembleNet(nn.Module):
         """
         super(EnsembleNet, self).__init__()
         
+        logger = setup_logger()
         logger.debug(f"------- Initialize EnsembleNet with mode: {mode}, arch: {arch}, model_path_list: {model_path_list}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
 
         self.model_list = []
+        self.y_list = np.zeros((len(model_path_list)))
         for model_path in model_path_list:
-            model = UnilateralNet(mode, arch, model_path, freeze_params, k, per_k, dropout, for_ensemble=True)
-            load_uni_model(model, model_path)
+            model = globals()[arch](Namespace(**{"k": k, "k_percent": per_k,}))
+            load_hemi_model(model, model_path)
             self.model_list.append(model)
+            
+        num_features = self.model_list[0].num_features
+        self.fine_head = add_head(num_features, 100, dropout)
+        self.coarse_head = add_head(num_features, 20, dropout)
 
     def forward(self, x):
         outputs = []
@@ -188,8 +205,13 @@ class EnsembleNet(nn.Module):
             outputs.append(model(x))
 
         avg_output = torch.mean(torch.stack(outputs), dim=0)
-        return avg_output
 
+        f_out = self.fine_head(avg_output)
+        c_out = self.coarse_head(avg_output)
+
+        return f_out, c_out
+        
+        
 
 def freeze_params(model):
     for param in model.parameters():
@@ -227,23 +249,14 @@ def ensemble(args):
                        args.dropout)
 
 
-def load_uni_model(model, ckpt_path):
-    """ 
-        Load hemisphere and heads
-        The hemisphere was trained with UnilateralNet, and it's being loaded again directly 
-        We need to take out the namespace variables that don't apply to the model directly
-    """
-    sdict = torch.load(ckpt_path)['state_dict']
-    model_dict = {k.replace('model.', ''):v for k,v in sdict.items()}
-    model.load_state_dict(model_dict)
-    return model
-
 def load_hemi_model(model, ckpt_path):
-    """ 
-        Load hemisphere (not heads) 
-        The hemisphere was trained with UnilateralNet, and it's being prepared for BilateralNet
-        So we need to strip out the heads (with strict=False)
-        We need to take out the namespace variables that don't apply to the model directly
+    """[summary]
+
+    Args:
+        ckpt_path ([type]): [description]
+
+    Returns:
+        [type]: [description]
     """
     sdict = torch.load(ckpt_path)['state_dict']
     model_dict = {k.replace('model.', '').replace('hemisphere.', ''):v for k,v in sdict.items()}

@@ -52,7 +52,7 @@ def main(config_path) -> None:
         save_dir = config['save_dir']
         arch_string = ''
         if config['hparams']['macro_arch'] == 'ensemble':
-            model_path_list = config['hparams']['farch']
+            model_path_list = config['hparams']['model_path_fine']
             arch_string = f"{len(model_path_list)}x{config['hparams']['farch']}"
         else:
             arch_string = f"{config['hparams']['farch']}-{config['hparams']['carch']}"  # default name
@@ -76,13 +76,18 @@ def main(config_path) -> None:
             num_workers=config['hparams']['num_workers'],
             split=False,
             split_file=None)
-        trainer.fit(model, datamodule=imdm)
-
+        
         dest_dir = os.path.join(save_dir, exp_name, version)
+        if config['hparams']['macro_arch'] != 'ensemble':
+            trainer.fit(model, datamodule=imdm)
+        else:
+            # create dest_dir (because it won't be created by training)
+            os.makedirs(dest_dir, exist_ok=True)
+
         shutil.copy(config_path, f'{dest_dir}/config.yaml')
 
         if config["evaluate"]:
-            result = trainer.test(datamodule=imdm)
+            result = trainer.test(model, datamodule=imdm)
 
             rdict = {
                 'seed': seed,

@@ -4,7 +4,7 @@ save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
 exp_name: dual_head
 
 trainer_params:
-  accelerator: gpu
+  accelerator: auto
   devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
   max_epochs: 200

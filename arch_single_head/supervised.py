@@ -105,7 +105,7 @@ class SupervisedLightningModule(LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss, output, label = self._step(batch, batch_idx)
-        self.log("train_loss", np.float32(loss), on_step=True, on_epoch=False)
+        self.log("train_loss", loss, on_step=True, on_epoch=False)
         self.training_step_outputs.append((output.detach().cpu(), label.detach().cpu()))
         return loss
     
@@ -116,12 +116,12 @@ class SupervisedLightningModule(LightningModule):
 
     def validation_step(self, batch, batch_idx):
         loss, output, label = self._step(batch, batch_idx)
-        self.log('val_loss', np.float32(loss), on_step=False, on_epoch=True, sync_dist=True)
+        self.log('val_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
         self.validation_step_outputs.append((output.detach().cpu(), label.detach().cpu()))
 
     def on_validation_epoch_end(self) -> None:
         acc = self._calc_accuracy(self.validation_step_outputs)
-        self.log('val_acc', np.float32(acc))
+        self.log('val_acc', acc)
         self.validation_step_outputs.clear()  # free memory
 
     def test_step(self, batch, batch_idx):

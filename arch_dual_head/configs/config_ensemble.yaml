@@ -31,14 +31,10 @@ hparams:
   warmup_epochs: 0
   batch_size: 256
   num_workers: 4
-  fine_k: None
-  fine_per_k: None
+  fine_k: 
+  fine_per_k: 
   dropout: 0.6
-  model_path_fine: [
-    /home/gideon/Dev/bilateral-brain/arch_single_head/runs/single_head-vgg11-coarse/20230513144945-seed2/checkpoints/epoch=131-val_acc=0.673.ckpt,
-    /home/gideon/Dev/bilateral-brain/arch_single_head/runs/single_head-vgg11-coarse/20230513164132-seed3/checkpoints/epoch=148-val_acc=0.682.ckpt,
-    /home/gideon/Dev/bilateral-brain/arch_single_head/runs/single_head-vgg11-coarse/20230513184516-seed4/checkpoints/epoch=115-val_acc=0.681.ckpt
-  ]   # list of paths to model checkpoints
+  model_path_fine: [/home/gideon/Dev/bilateral-brain/arch_dual_head/runs/dual_head-unilateral-vgg11-None-both/20230515132112-seed70/checkpoints/epoch=0-val_acc=0.220.ckpt]   # list of paths to model checkpoints
 
 ckpt_callback:
   save_top_k: 2

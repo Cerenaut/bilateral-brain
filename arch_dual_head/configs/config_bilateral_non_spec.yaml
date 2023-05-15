@@ -4,12 +4,12 @@ save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
 exp_name: bilateral_no_spec
 
 trainer_params:
-  accelerator: gpu
+  accelerator: auto
   devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 200
+  max_epochs: 1
   log_every_n_steps: 50
-  check_val_every_n_epoch: 2
+  check_val_every_n_epoch: 1
   accumulate_grad_batches: 1
 
 dataset:
@@ -22,10 +22,10 @@ logger:
   type: TensorBoardLogger
 
 hparams:
-  mode: 'both'              # where to get output from:     [both | feature]
-  macro_arch: 'bilateral'   # unilateral or bilateral. If unilateral, use farch
-  farch: 'vgg11'          # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
-  carch: 'vgg11'          # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
+  mode: both              # where to get output from:     [both | feature]
+  macro_arch: bilateral   # unilateral or bilateral. If unilateral, use farch
+  farch: vgg11            # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  carch: vgg11            # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
   ffreeze: False
   cfreeze: False
   lr: 1.0e-4
@@ -33,16 +33,16 @@ hparams:
   warmup_epochs: 0
   batch_size: 256
   num_workers: 4
-  fine_k: None
-  fine_per_k: None
-  coarse_k: None
-  coarse_per_k: None
+  fine_k: 
+  fine_per_k: 
+  coarse_k: 
+  coarse_per_k: 
   dropout: 0.6
   # model_path_fine: ''   # path to narrow model checkpoint
   # model_path_coarse: ''  # path to broad model checkpoint
 
 ckpt_callback:
-  save_top_k: 2
+  save_top_k: 1
   monitor: val_acc
   mode: min
-  save_last: True
+  save_last: False
