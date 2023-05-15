@@ -12,6 +12,8 @@ import torch
 import torch.nn as nn
 from utils import setup_logger
 
+logger = setup_logger(__name__)
+
 
 class BasicBlock(nn.Module):
     """Basic Block for resnet 18 and resnet 34
@@ -205,7 +207,6 @@ class ResNet9(nn.Module):
 def resnet9(args):
     """ return a ResNet 18 object
     """
-    logger = setup_logger()
     logger.warning("This implementation of resnet9 does not accept parameters i.e. no sparsity.")
     return ResNet9()
 

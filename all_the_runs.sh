@@ -5,18 +5,19 @@
 # and then train the bilateral model using them, each time with a different seed
 python train_system.py --arch vgg11 --num_seeds 5 --epochs 1 1 1 --uni_base_config configs/config_unilateral_specialize.yaml --bi_base_config configs/config_bilateral_specialized.yaml
 
+# if you already have the checkpoints (in trained_models.yaml) you can just run this:
+# python train_system.py --arch vgg11 --num_seeds 5 --epochs 1 1 1 --uni_base_config configs/config_unilateral_specialize.yaml --bi_base_config configs/config_bilateral_specialized.yaml --trained_models configs/trained_models.yaml 
+
+# # -------- baseline: non specialised bilateral network   --------
+# python trainer.py --config configs/config_bilateral_nspecialized.yaml
 
 
-# -------- baseline: non specialised bilateral network   --------
-python trainer.py --config configs/config_bilateral_nspecialized.yaml
 
+# # -------- baseline: ensemble   --------
 
+# # train 5 non-specialized hemispheres (seeds in the config)
+# python trainer.py --config configs/config_unilateral_nspecialized.yaml
 
-# -------- baseline: ensemble   --------
-
-# train 5 non-specialized hemispheres (seeds in the config)
-python trainer.py --config configs/config_unilateral_nspecialized.yaml
-
-# train ensemble    --------> manually set the names of the checkpoints then run this:
-# python trainer.py --config configs/config_ensemble.yaml
+# # train ensemble    --------> manually set the names of the checkpoints then run this:
+# # python trainer.py --config configs/config_ensemble.yaml
 

@@ -69,14 +69,14 @@ class BilateralNet(nn.Module):
             load_hemi_model(self.fine_hemi, fmodel_path)
             if ffreeze_params:
                 freeze_params(self.fine_hemi)
-                str += ",      ---> and freeze"
+                str += "      ---> and freeze"
             logger.debug(str)
         if cmodel_path is not None and cmodel_path != '':
             str = "------- Load coarse hemisphere"
             load_hemi_model(self.coarse_hemi, cmodel_path)
             if cfreeze_params:
                 freeze_params(self.coarse_hemi)
-                str += ",      ---> and freeze"
+                str += "     ---> and freeze"
             logger.debug(str)
 
         # add heads
@@ -229,10 +229,10 @@ def unilateral(args):
     """
     return UnilateralNet(args.mode_heads,
                          args.mode_out,
-                         args.arch,
-                         args.model_path, 
-                         args.freeze_params,
-                         args.k, args.per_k,
+                         args.farch,
+                         args.fmodel_path, 
+                         args.ffreeze_params,
+                         args.fine_k, args.fine_per_k,
                          args.dropout)
 
 def ensemble(args):

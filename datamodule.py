@@ -139,7 +139,7 @@ class DataModule(pl.LightningDataModule):
         ])
 
         if self.mode_heads == 'both':
-            self.train_set = DualHeadsDataset(
+            train_set = DualHeadsDataset(
                 mode='train',
                 root=self.train_dir,
                 raw_data_path=self.raw_data_dir,

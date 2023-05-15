@@ -70,7 +70,7 @@ class SupervisedLightningModuleDualHead(LightningModule):
         args = Namespace(**mydict)
 
         mode_hemis = self.config["hparams"].get("mode_hemis", None)
-        logger.info("----- ** {model_hemis} ** -------- hemisphere configuration")
+        logger.info(f"----- ** {mode_hemis} ** -------- hemisphere configuration")
         if mode_hemis == 'bilateral':
             self.model = bilateral(args)    # mode_heads ignored, assumes 'both'
         elif mode_hemis == 'unilateral':

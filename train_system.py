@@ -3,10 +3,8 @@ import sys
 import os.path as osp
 import argparse
 
-import arch_single_head.trainer as tr_single
-import arch_dual_head.trainer as tr_dual
 from utils import run_cli, mod_filename
-
+import trainer
 
 data = {'fine': {}, 'coarse': {}}
 data['fine']['train'] = 'datasets/CIFAR100/train/fine'
@@ -49,7 +47,7 @@ def train_hemispheres(arch, base_config_path, num_seeds, epochs):
       yaml.safe_dump(doc, out)
 
     # run the experiment
-    checkpoints = tr_single.main(new_config_path)
+    checkpoints = trainer.main(new_config_path)
     checkpoints_dict[label_type] = checkpoints
 
   return checkpoints_dict['fine'], checkpoints_dict['coarse']
@@ -90,7 +88,7 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
       yaml.safe_dump(doc, out)
 
     # run the experiment
-    tr_dual.main(new_config_path)
+    trainer.main(new_config_path)
     i += 1
 
 
@@ -99,7 +97,7 @@ def main(arch, single_head_base_config, dual_head_base_config,
          f_checkpoints='', c_checkpoints=''):
   
   # if we don't have saved checkpoints, train the hemispheres
-  if f_checkpoints == '' or c_checkpoints == '':
+  if f_checkpoints == None or c_checkpoints == None:
     f_checkpoints, c_checkpoints = train_hemispheres(arch, single_head_base_config, num_seeds, epochs)
 
   # optionally train the whole bilateral architecture
@@ -130,11 +128,10 @@ The seeds will be 0, 1, ..., num_seeds-1.')
   parser.add_argument('--epochs', metavar='N', type=int, nargs='+',
                     help='List of integers, expecting 3 for `fine epochs`, `coarse epochs`, `bilateral epochs`')
 
-  parser.add_argument('--f_chk', type=str, default='',
-                      help='Path to folder of saved checkpoints for fine hemispheres. If fine and coarse checkpoints provided, then dont train hemispheres.')
-  parser.add_argument('--c_chk', type=str, default='',
-                      help='Path to folder of saved checkpoints for coarse hemispheres. If fine and coarse checkpoints provided, then dont train hemispheres.')
+  parser.add_argument('--trained_models', type=str, default='',
+                      help='Path to yaml file of saved checkpoints (fine_checkpoints, coarse_checkpoints). If fine and coarse checkpoints provided, then dont train hemispheres.')
   
+
   # parse the command line arguments
   args = parser.parse_args()
 
@@ -145,12 +142,13 @@ The seeds will be 0, 1, ..., num_seeds-1.')
   print(f"no_bilateral: {args.no_bilateral}")
   print(f"num_seeds: {args.num_seeds}")
   print(f"epochs: {args.epochs}")
-  print(f"f_chk: {args.f_chk}")
-  print(f"c_chk: {args.c_chk}")
+  print(f"trained_models: {args.trained_models}")
 
-  # TODO add code to go through checkpoint folders, and create an array of checkpoints for each hemisphere
-  # in order to support passing f_chk and c_chk, rather than training the hemispheres here
-
+  fine_checkpoints, coarse_checkpoints = None, None
+  if args.trained_models != '':
+    t_models = run_cli(config_path=args.trained_models)
+    fine_checkpoints = t_models['fine_checkpoints']
+    coarse_checkpoints = t_models['coarse_checkpoints']
 
   if args.epochs is not None:
     epochs_dict['fine'] = args.epochs[0]
@@ -163,10 +161,6 @@ The seeds will be 0, 1, ..., num_seeds-1.')
        args.no_bilateral, 
        args.num_seeds,
        args.epochs,
-       args.f_chk, 
-       args.c_chk)
+       fine_checkpoints,
+       coarse_checkpoints)
 
-
-
-# Train single hemispheres on fine and coarse, with 5 seeds each, with vgg11 backbone
-# python train_system.py --no_bilateral --arch vgg11 --num_seeds 5 --epochs 200 200 100

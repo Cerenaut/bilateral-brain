@@ -15,6 +15,9 @@ import torchvision.models as models
 
 # from pygln import gln
 
+
+logger = setup_logger(__name__)
+
 ''' VGG as a feature extractor - strips out the classifier, and returns the features '''
 class VGG11(nn.Module):
 
@@ -31,7 +34,6 @@ class VGG11(nn.Module):
 def vgg11(args):
     """ return a vgg11 object
     """
-    logger = setup_logger()
     logger.warning("This implementation of vgg does not accept parameters i.e. no sparsity.")
     return VGG11()
 

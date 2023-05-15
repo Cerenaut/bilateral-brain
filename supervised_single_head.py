@@ -57,7 +57,7 @@ class SupervisedLightningModuleSingleHead(LightningModule):
         self.learning_rate = self.config['hparams']['lr']
         # self.warmup_epochs = self.config['hparams']['warmup_epochs']
         # self.max_epochs = self.config['trainer_params']['max_epochs']
-            
+
         self._initialize_model()
 
         # compute iters per epoch
@@ -68,14 +68,16 @@ class SupervisedLightningModuleSingleHead(LightningModule):
         self.test_step_outputs = []
     
     def _initialize_model(self):
+
+        # must use 'f' prefix for fine head, because unilateral can have 2 heads, and if there is only one, use fine
         mydict = {
                     "mode_out": self.config["hparams"].get("mode_out"),
                     "mode_heads": self.config["hparams"].get("mode_heads"),
-                    "arch": self.config["hparams"].get("farch"),
-                    "model_path": self.config["hparams"].get("model_path"),
-                    "freeze_params": False,
-                    "k": self.config["hparams"].get("fine_k"),
-                    "per_k": self.config["hparams"].get("fine_per_k"),
+                    "farch": self.config["hparams"].get("farch"),
+                    "fmodel_path": self.config["hparams"].get("model_path"),
+                    "ffreeze_params": False,
+                    "fine_k": self.config["hparams"].get("fine_k"),
+                    "fine_per_k": self.config["hparams"].get("fine_per_k"),
                     "dropout": self.config["hparams"].get("dropout", 0.0)
                 }
         args = Namespace(**mydict)
