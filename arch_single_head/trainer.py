@@ -13,11 +13,11 @@ from lightning.pytorch.loggers import TensorBoardLogger
 
 
 if __name__ == '__main__':
-    from datamodule import DataModule
-    from supervised import SupervisedLightningModule
+    from arch_dual_head.datamodule import DataModule
+    from arch_single_head.supervised_single_head import SupervisedLightningModule
 else:
-    from .datamodule import DataModule
-    from .supervised import SupervisedLightningModule
+    from ..arch_dual_head.datamodule import DataModule
+    from .supervised_single_head import SupervisedLightningModule
 
 from utils import run_cli, yaml_func
 

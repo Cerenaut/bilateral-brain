@@ -33,7 +33,7 @@ def train_hemispheres(arch, base_config_path, num_seeds, epochs):
 
     # customize params
     doc['seeds'] = list(range(num_seeds))
-    doc['hparams']['mode'] = label_type
+    doc['hparams']['mode_heads'] = label_type
     doc['hparams']['arch'] = arch
     doc['dataset']['train_dir'] = data[label_type]['train']
     doc['dataset']['val_dir'] = data[label_type]['test']
@@ -71,8 +71,8 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
     doc['seed'] = [i]                                     # new seed for each unique set of hemispheres
     doc['hparams']['farch'] = f_arch                      # architecture for fine
     doc['hparams']['carch'] = c_arch                      # architecture for coarse
-    doc['hparams']['mode'] = 'both'                       # output from both heads
-    doc['hparams']['macro_arch'] = 'bilateral'            # two hemispheres
+    doc['hparams']['mode_output'] = 'both'                # output from both heads
+    doc['hparams']['mode_hemis'] = 'bilateral'            # two hemispheres
     doc['hparams']['model_path_fine'] = f_checkpoint      # load fine hemisphere
     doc['hparams']['model_path_coarse'] = c_checkpoint    # load coarse hemisphere
 

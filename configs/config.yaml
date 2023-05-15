@@ -13,20 +13,21 @@ trainer_params:
   accumulate_grad_batches: 1
 
 dataset:
-  train_dir: ../datasets/CIFAR100/train/fine
-  val_dir: ../datasets/CIFAR100/test/fine
-  test_dir: ../datasets/CIFAR100/test/fine
-  raw_data_dir: ../../datasets/cifar-100-python/  # needs a trailing slash
+  train_dir: datasets/CIFAR100/train/fine
+  val_dir: datasets/CIFAR100/test/fine
+  test_dir: datasets/CIFAR100/test/fine
+  raw_data_dir: ../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:
   type: TensorBoardLogger
 
 hparams:
-  mode: 'both'              # where to get output from:     [both | feature]
-  macro_arch: 'unilateral'  # unilateral or bilateral. If unilateral, use farch
+  mode_out: 'both'            # where to get output from:         [pred | feature]
+  mode_heads:                   # [fine, coarse, both, features]
+  mode_hemis:               # [unilateral, bilateral, ensemble]
   farch: 'vgg11'            # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
   carch: 'vgg11'            # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
-  ffreeze: F
+  ffreeze: True
   cfreeze: True
   lr: 1.0e-4
   weight_decay: 1.0e-5

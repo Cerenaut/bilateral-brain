@@ -1,7 +1,7 @@
 seeds: [4]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
 evaluate: True
 save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
-exp_name: dual_head
+exp_name: ensemble
 
 trainer_params:
   accelerator: auto
@@ -13,18 +13,19 @@ trainer_params:
   accumulate_grad_batches: 1
 
 dataset:
-  train_dir: ../datasets/CIFAR100/train/fine
-  val_dir: ../datasets/CIFAR100/test/fine
-  test_dir: ../datasets/CIFAR100/test/fine
-  raw_data_dir: ../../datasets/cifar-100-python/  # needs a trailing slash
+  train_dir: datasets/CIFAR100/train/fine
+  val_dir: datasets/CIFAR100/test/fine
+  test_dir: datasets/CIFAR100/test/fine
+  raw_data_dir: ../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:
   type: TensorBoardLogger
 
 hparams:
-  mode: 'both'              # where to get output from:     [both | feature]
-  macro_arch: 'ensemble'    # unilateral or bilateral. If unilateral, use farch
-  farch: 'vgg11'            # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  mode_out: 'pred'             # where to get output from:        [pred | feature]
+  mode_heads: 'both'           # which heads to use:              [fine, coarse, both, features]
+  mode_hemis: 'ensemble'       # which hemispheres to use:        [unilateral, bilateral, ensemble]
+  farch: 'vgg11'               # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
   ffreeze: True
   lr: 1.0e-4
   weight_decay: 1.0e-5
@@ -37,7 +38,7 @@ hparams:
   model_path_fine: [/home/gideon/Dev/bilateral-brain/arch_dual_head/runs/dual_head-unilateral-vgg11-None-both/20230515132112-seed70/checkpoints/epoch=0-val_acc=0.220.ckpt]   # list of paths to model checkpoints
 
 ckpt_callback:
-  save_top_k: 2
+  save_top_k: 1
   monitor: val_acc
   mode: min
-  save_last: True
+  save_last: False

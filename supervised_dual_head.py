@@ -10,9 +10,12 @@ import sys
 sys.path.append('../')
 
 from models.macro import bilateral, unilateral, ensemble
+from utils import setup_logger
+
+logger = setup_logger(__name__)
 
 
-class SupervisedLightningModule(LightningModule):
+class SupervisedLightningModuleDualHead(LightningModule):
     def __init__(
         self,
         config: Optional[Dict],
@@ -48,47 +51,34 @@ class SupervisedLightningModule(LightningModule):
         '''
         Assumes that if it's an ensemble model, that all models have identical hparams
         '''
-        macro_arch = self.config["hparams"].get("macro_arch", None)
-        if macro_arch == 'bilateral' or macro_arch == None:
-            print("----- **BILATERAL** macro-architecture")
 
-            mydict = {
-                "mode": self.config["hparams"]["mode"],
-                "farch": self.config["hparams"].get("farch", None),
-                "carch": self.config["hparams"].get("carch", None),
-                "fmodel_path": self.config["hparams"].get("model_path_fine"),
-                "cmodel_path": self.config["hparams"].get("model_path_coarse"),
-                "ffreeze_params": self.config["hparams"].get("ffreeze"),
-                "cfreeze_params": self.config["hparams"].get("cfreeze"),
-                "fine_k": self.config["hparams"].get("fine_k"),
-                "fine_per_k": self.config["hparams"].get("fine_per_k"),
-                "coarse_k": self.config["hparams"].get("coarse_k"),
-                "coarse_per_k": self.config["hparams"].get("coarse_per_k"),
-                "dropout": self.config["hparams"].get("dropout", 1.0),
-                }
-            args = Namespace(**mydict)
-            self.model = bilateral(args)
-        elif macro_arch == 'unilateral' or macro_arch == 'ensemble':
+        mydict = {
+            "mode_out": self.config["hparams"]["mode_out"],
+            "mode_heads": self.config["hparams"]["mode_heads"],
+            "farch": self.config["hparams"].get("farch", None),
+            "carch": self.config["hparams"].get("carch", None),
+            "fmodel_path": self.config["hparams"].get("model_path_fine"),
+            "cmodel_path": self.config["hparams"].get("model_path_coarse"),
+            "ffreeze_params": self.config["hparams"].get("ffreeze"),
+            "cfreeze_params": self.config["hparams"].get("cfreeze"),
+            "fine_k": self.config["hparams"].get("fine_k"),
+            "fine_per_k": self.config["hparams"].get("fine_per_k"),
+            "coarse_k": self.config["hparams"].get("coarse_k"),
+            "coarse_per_k": self.config["hparams"].get("coarse_per_k"),
+            "dropout": self.config["hparams"].get("dropout", 1.0),
+            }
+        args = Namespace(**mydict)
 
-            mydict = {
-                "mode": self.config["hparams"]["mode"],
-                "arch": self.config["hparams"].get("farch", None),
-                "model_path": self.config["hparams"].get("model_path_fine"),
-                "freeze_params": self.config["hparams"].get("ffreeze"),
-                "k": self.config["hparams"].get("fine_k"),
-                "per_k": self.config["hparams"].get("fine_per_k"),
-                "dropout": self.config["hparams"].get("dropout", 0.0),
-                }
-            args = Namespace(**mydict)
-
-            if macro_arch == 'unilateral':
-                print("----- **UNILATERAL** macro-architecture")
-                self.model = unilateral(args)
-            else:
-                print("----- **ENSEMBLE** macro-architecture")
-                self.model = ensemble(args)
+        mode_hemis = self.config["hparams"].get("mode_hemis", None)
+        logger.info("----- ** {model_hemis} ** -------- hemisphere configuration")
+        if mode_hemis == 'bilateral':
+            self.model = bilateral(args)    # mode_heads ignored, assumes 'both'
+        elif mode_hemis == 'unilateral':
+            self.model = unilateral(args)
+        elif mode_hemis == 'ensemble':  
+            self.model = ensemble(args)     # modes will be ignored (because ensemble assumes values)
         else:
-            raise ValueError(f"Invalid macro architecture: {macro_arch}")
+            raise ValueError(f"Invalid mode_hemis specification: {mode_hemis}")
     
     def forward(self, x):
         fine, coarse = self.model(x)

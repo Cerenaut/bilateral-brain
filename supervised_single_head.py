@@ -36,7 +36,7 @@ class WarmUpLR(_LRScheduler):
         return [base_lr * self.last_epoch / (self.total_iters + 1e-8) for base_lr in self.base_lrs]
 
 
-class SupervisedLightningModule(LightningModule):
+class SupervisedLightningModuleSingleHead(LightningModule):
     def __init__(
         self,
         config: Optional[Dict],
@@ -66,15 +66,16 @@ class SupervisedLightningModule(LightningModule):
         self.training_step_outputs = []
         self.validation_step_outputs = []
         self.test_step_outputs = []
-
+    
     def _initialize_model(self):
         mydict = {
-                    "mode": self.config["hparams"].get("mode"),
-                    "arch": self.config["hparams"].get("arch"),
+                    "mode_out": self.config["hparams"].get("mode_out"),
+                    "mode_heads": self.config["hparams"].get("mode_heads"),
+                    "arch": self.config["hparams"].get("farch"),
                     "model_path": self.config["hparams"].get("model_path"),
                     "freeze_params": False,
-                    "k": self.config["hparams"].get("k"),
-                    "per_k": self.config["hparams"].get("per_k"),
+                    "k": self.config["hparams"].get("fine_k"),
+                    "per_k": self.config["hparams"].get("fine_per_k"),
                     "dropout": self.config["hparams"].get("dropout", 0.0)
                 }
         args = Namespace(**mydict)

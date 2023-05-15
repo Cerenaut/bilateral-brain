@@ -1,0 +1,43 @@
+seeds: [7]       # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
+evaluate: True
+save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
+exp_name: unilateral_specialize
+
+trainer_params:
+  accelerator: auto
+  devices: auto
+  default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
+  max_epochs: 150
+  log_every_n_steps: 50
+  check_val_every_n_epoch: 1
+  accumulate_grad_batches: 1
+
+dataset:
+  train_dir: datasets/CIFAR100/train/coarse
+  val_dir: datasets/CIFAR100/test/coarse
+  test_dir: datasets/CIFAR100/test/coarse
+
+logger:
+  type: TensorBoardLogger
+
+hparams:
+  mode_out: 'pred'             # where to get output from:        [pred | feature]
+  mode_heads: 'coarse'         # which heads to use:              [fine, coarse, both, features]
+  mode_hemis: 'unilateral'     # which hemispheres to use:        [unilateral, bilateral, ensemble]
+  farch: vgg11                 # architecture for hemisphere (fine or default if only one hemisphere)  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11]
+  ffreeze: False
+  lr: 1.0e-4
+  weight_decay: 1.0e-3
+  batch_size: 256
+  fine_k: 0.0
+  fine_per_k: 0.0
+  num_workers: 6
+  dropout: 0.6
+
+ckpt_callback:
+  save_top_k: 1
+  monitor: val_acc
+  mode: max
+  save_last: False
+
+

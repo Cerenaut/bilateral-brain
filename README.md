@@ -115,9 +115,9 @@ For example:
 
 ```
 dataset:
-  train_dir: ../datasets/CIFAR100/train/fine
-  val_dir: ../datasets/CIFAR100/test/fine
-  test_dir: ../datasets/CIFAR100/test/fine
+  train_dir: datasets/CIFAR100/train/fine
+  val_dir: datasets/CIFAR100/test/fine
+  test_dir: datasets/CIFAR100/test/fine
 ```
 
 - see `config.yaml` for explanations of other parameters

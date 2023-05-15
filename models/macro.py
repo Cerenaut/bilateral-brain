@@ -10,8 +10,17 @@ from utils import setup_logger
 
 logger = setup_logger(__name__)
 
-def check_list():
-    return ['fine', 'coarse', 'both', 'feature']
+def check_list_mode_head():
+    return ['fine', 'coarse', 'both']
+
+def check_list_mode_out():
+    return ['pred', 'features']
+
+def check_modes(mode_heads, mode_out):
+    if mode_heads and mode_heads not in check_list_mode_head():
+        raise ValueError('Mode_head is invalid')
+    if mode_out and mode_out not in check_list_mode_out():
+        raise ValueError('Mode_out is invalid')
 
 def add_head(num_features, num_classes, dropout):
     mod =nn.Sequential(
@@ -21,12 +30,13 @@ def add_head(num_features, num_classes, dropout):
 
 class BilateralNet(nn.Module):
     """
-    A Bilateral network with two hemispheres and two heads.
+    A Bilateral network with two hemispheres and two heads
     The hemispheres types are configurable.
     The heads are for fine and coarse labels respectively.
     """
 
-    def __init__(self, mode: str,
+    def __init__(self,
+                 mode_out: str,
                  farch: str, carch: str,
                  cmodel_path = None, fmodel_path = None,
                  cfreeze_params: bool = True, ffreeze_params: bool = True,
@@ -38,15 +48,16 @@ class BilateralNet(nn.Module):
         Args:
             carch (str): architecture for coarse labels
             farch (str): architecture for fine labels
-            mode (str): where to get the outputs from
+            mode_out (str): where to get the outputs from
                                 both = classifications from both heads
                                 feature = features from both hemispheres (input to heads)
         """
         super(BilateralNet, self).__init__()
         
-        logger.debug(f"------- Initialize BilaterallNet with farch: {farch}, carch: {carch}, mode: {mode}, dropout: {dropout}")
-        
-        self.mode = mode
+        logger.debug(f"------- Initialize BilaterallNet with farch: {farch}, carch: {carch}, mode_out: {mode_out}, dropout: {dropout}")        
+        check_modes(None, mode_out)
+
+        self.mode_out = mode_out
         
         # create the hemispheres
         self.fine_hemi = globals()[farch](Namespace(**{"k": fine_k, "k_percent": fine_per_k,}))
@@ -78,12 +89,13 @@ class BilateralNet(nn.Module):
         fembed = self.fine_hemi(x)
         cembed = self.coarse_hemi(x)
         embed = torch.cat([fembed, cembed], axis=1)
-        if self.mode == 'both':
+        if self.mode_out == 'feature':
+            return embed
+        elif self.mode_out == 'pred':
             f_out = self.fine_head(embed)
             c_out = self.coarse_head(embed)
             return f_out, c_out
-        elif self.mode == 'feature':
-            return embed
+
 
 class UnilateralNet(nn.Module):
     """
@@ -93,7 +105,8 @@ class UnilateralNet(nn.Module):
     """
 
     def __init__(self,
-                 mode: str,
+                 mode_heads: str,
+                 mode_out: str,
                  arch: str,
                  model_path: str,
                  freeze_params: bool,
@@ -104,19 +117,21 @@ class UnilateralNet(nn.Module):
 
         Args:
             arch (str): architecture for the hemisphere
-            mode (str): which heads to create and where to get output
-                                both = create fine and coarse heads, get classification output
-                                fine, coarse = just fine or coarse, get classification output
-                                features = don't create heads, get output features as output
+            mode_heads (str): which heads to create
+                                both = create fine and coarse heads
+                                fine, coarse = just fine or coarse
+            mode_out (str): where to get the outputs from: pred (head output) or feature (hemisphere(s) output)
         """
         super(UnilateralNet, self).__init__()
         
-        logger.debug(f"------- Initialize UnilateralNet with mode: {mode}, arch: {arch}, model_path: {model_path}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
+        logger.debug(f"------- Initialize UnilateralNet with mode_heads: {mode_heads}, mode_out: {mode_out}, arch: {arch}, model_path: {model_path}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
 
-        if for_ensemble:
-            self.mode = 'both'
-        else:
-            self.mode = mode
+        if for_ensemble and mode_heads != 'both':
+            ValueError('For ensemble, mode_heads must be "both"')
+        check_modes(mode_heads, mode_out)
+
+        self.mode_heads = mode_heads
+        self.mode_out = mode_out
 
         # create the hemispheres
         self.hemisphere = globals()[arch](Namespace(**{"k": k, "k_percent": per_k,}))
@@ -125,39 +140,38 @@ class UnilateralNet(nn.Module):
         num_features = self.hemisphere.num_features
         logger.debug(f"-- num_features: {num_features}")
 
-        if self.mode not in check_list():
-            raise ValueError('Mode of unilateral network does not match')
-        
-        if self.mode == 'fine' or self.mode == 'both':        
+        if self.mode_heads == 'fine' or self.mode_heads == 'both':        
             self.fine_head = add_head(num_features, 100, dropout)
-        if self.mode == 'coarse' or self.mode == 'both':                    
+        if self.mode_heads == 'coarse' or self.mode_heads == 'both':                    
             self.coarse_head = add_head(num_features, 20, dropout)
 
     def forward(self, x):
         embed = self.hemisphere(x)
 
-        if self.mode == 'fine':
-            fh = self.fine_head(embed)
-            return fh
-        if self.mode == 'coarse':
-            ch = self.coarse_head(embed)
-            return ch
-        if self.mode == 'both':
-            fh = self.fine_head(embed)
-            ch = self.coarse_head(embed)
-            return fh, ch
-        elif self.mode == 'feature':
+        if self.mode_out == 'feature':
             return embed
+        elif self.mode_out == 'pred':
+            if self.mode_heads == 'fine':
+                fh = self.fine_head(embed)
+                return fh
+            if self.mode_heads == 'coarse':
+                ch = self.coarse_head(embed)
+                return ch
+            if self.mode_heads == 'both':
+                fh = self.fine_head(embed)
+                ch = self.coarse_head(embed)
+                return fh, ch        
 
 
 class EnsembleNet(nn.Module):
     """
-    An Ensemble network with multiple models, each with two heads.
+    An Ensemble network with multiple UnilateralNet models.
+    Assumes each one was created with two heads.
+    Averages the classification outputs from all of them.
     Designed for EVALUATION ONLY of a set of trained models.
     """
 
     def __init__(self,
-                 mode: str,
                  arch: str,
                  model_path_list: list,
                  freeze_params: bool,
@@ -174,10 +188,10 @@ class EnsembleNet(nn.Module):
         """
         super(EnsembleNet, self).__init__()
         
-        logger.debug(f"------- Initialize EnsembleNet with mode: {mode}, arch: {arch}, model_path_list: {model_path_list}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
+        logger.debug(f"------- Initialize EnsembleNet with arch: {arch}, model_path_list: {model_path_list}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
 
         def create_load_model(model_path):
-            model = UnilateralNet(mode, arch, model_path, freeze_params, k, per_k, dropout, for_ensemble=True)
+            model = UnilateralNet('both', arch, model_path, freeze_params, k, per_k, dropout, for_ensemble=True)
             load_uni_model(model, model_path)
             return model
 
@@ -193,7 +207,6 @@ class EnsembleNet(nn.Module):
 
         return avg_output_f, avg_output_c
 
-
 def freeze_params(model):
     for param in model.parameters():
         param.requires_grad = False
@@ -202,7 +215,7 @@ def bilateral(args):
     """ Return a single hemisphere or bilateral (two hemispheres) network with two heads, based on the args
         See BilateralNet class for more details
     """
-    return BilateralNet(args.mode,
+    return BilateralNet(args.mode_out,
                         args.farch, args.carch, 
                         args.fmodel_path, args.cmodel_path,
                         args.ffreeze_params, args.cfreeze_params,
@@ -214,7 +227,8 @@ def unilateral(args):
     """ Return a unilateral network (one hemisphere) with one head, based on the args
         See UnilateralNet class for more details
     """
-    return UnilateralNet(args.mode,
+    return UnilateralNet(args.mode_heads,
+                         args.mode_out,
                          args.arch,
                          args.model_path, 
                          args.freeze_params,
@@ -222,13 +236,11 @@ def unilateral(args):
                          args.dropout)
 
 def ensemble(args):
-    return EnsembleNet(args.mode,
-                       args.arch,
-                       args.model_path, 
-                       args.freeze_params,
-                       args.k, args.per_k,
+    return EnsembleNet(args.farch,
+                       args.fmodel_path, 
+                       args.ffreeze_params,
+                       args.fine_k, args.fine_per_k,
                        args.dropout)
-
 
 def load_uni_model(model, ckpt_path):
     """ 
