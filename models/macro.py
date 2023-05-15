@@ -176,19 +176,22 @@ class EnsembleNet(nn.Module):
         
         logger.debug(f"------- Initialize EnsembleNet with mode: {mode}, arch: {arch}, model_path_list: {model_path_list}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
 
-        self.model_list = []
-        for model_path in model_path_list:
+        def create_load_model(model_path):
             model = UnilateralNet(mode, arch, model_path, freeze_params, k, per_k, dropout, for_ensemble=True)
             load_uni_model(model, model_path)
-            self.model_list.append(model)
+            return model
+
+        self.model_list = nn.ModuleList([create_load_model(model_path) for model_path in model_path_list])
 
     def forward(self, x):
         outputs = []
         for model in self.model_list:
             outputs.append(model(x))
 
-        avg_output = torch.mean(torch.stack(outputs), dim=0)
-        return avg_output
+        avg_output_f = torch.mean(torch.stack([output[0] for output in outputs]), dim=0)
+        avg_output_c = torch.mean(torch.stack([output[1] for output in outputs]), dim=0)
+
+        return avg_output_f, avg_output_c
 
 
 def freeze_params(model):
