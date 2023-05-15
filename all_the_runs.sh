@@ -6,7 +6,8 @@
 python train_system.py --arch vgg11 --num_seeds 5 --epochs 1 1 1 --uni_base_config configs/config_unilateral_specialize.yaml --bi_base_config configs/config_bilateral_specialized.yaml
 
 # if you already have the checkpoints (in trained_models.yaml) you can just run this:
-# python train_system.py --arch vgg11 --num_seeds 5 --epochs 1 1 1 --uni_base_config configs/config_unilateral_specialize.yaml --bi_base_config configs/config_bilateral_specialized.yaml --trained_models configs/trained_models.yaml 
+# python train_system.py --arch vgg11 --num_seeds 5 --epochs 1 1 1 --bi_base_config configs/config_bilateral_specialized.yaml --trained_models configs/trained_models.yaml 
+
 
 # # -------- baseline: non specialised bilateral network   --------
 # python trainer.py --config configs/config_bilateral_nspecialized.yaml

@@ -62,11 +62,10 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
   abs_filpath = osp.abspath(base_config_path)
   doc = run_cli(config_path=abs_filpath)
 
-  i = 0
-  for f_checkpoint, c_checkpoint in zip(f_checkpoints, c_checkpoints):
+  for i, (f_checkpoint, c_checkpoint) in enumerate(zip(f_checkpoints, c_checkpoints)):
 
     # customize params
-    doc['seed'] = [i]                                     # new seed for each unique set of hemispheres
+    doc['seeds'] = [i]                                     # new seed for each unique set of hemispheres
     doc['hparams']['farch'] = f_arch                      # architecture for fine
     doc['hparams']['carch'] = c_arch                      # architecture for coarse
     doc['hparams']['mode_output'] = 'both'                # output from both heads
@@ -89,7 +88,6 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
 
     # run the experiment
     trainer.main(new_config_path)
-    i += 1
 
 
 def main(arch, single_head_base_config, dual_head_base_config, 
