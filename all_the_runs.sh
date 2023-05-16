@@ -12,6 +12,8 @@ echo ----------------------------------------------------------------
 # # train 5 non-specialized hemispheres (seeds in the config)
 python trainer.py --config configs/config_unilateral_nspecialized.yaml
 
+# echo # train ensemble    --------> manually set the names of the checkpoints then run this:
+# # python trainer.py --config configs/config_ensemble.yaml
 
 echo ----------------------------------------------------------------
 echo -------- bilateral --------
@@ -24,7 +26,4 @@ python train_system.py --arch vgg11 --num_seeds 2 --epochs 180 180 100 --uni_bas
 # if you already have the checkpoints (in trained_models.yaml) you can just run this:
 # python train_system.py --arch vgg11 --num_seeds 5 --epochs 1 1 1 --bi_base_config configs/config_bilateral_specialized.yaml --trained_models configs/trained_models.yaml 
 
-
-# echo # train ensemble    --------> manually set the names of the checkpoints then run this:
-# # python trainer.py --config configs/config_ensemble.yaml
 
