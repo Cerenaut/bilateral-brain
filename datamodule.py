@@ -23,7 +23,7 @@ logger = setup_logger(__name__)
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
 
-TRAIN_VAL_SPLIT = 1.0   # proportion of training set to use for validation
+TRAIN_VAL_SPLIT = 0.8   # proportion of training set to use for validation
 
 def pil_loader(path: str) -> Image.Image:
     # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
