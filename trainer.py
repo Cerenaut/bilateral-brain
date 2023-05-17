@@ -136,7 +136,6 @@ def main(config_path) -> None:
                             # limit_val_batches=0.1,
                             # limit_test_batches=0.1)
 
-
         imdm = DataModule(mode_heads,
                           train_dir=config['dataset']['train_dir'],
                           test_dir=config['dataset']['test_dir'],

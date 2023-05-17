@@ -14,6 +14,7 @@ from torch.utils.data import DataLoader, random_split
 from torchvision.transforms.transforms import CenterCrop, Normalize, \
                         RandomErasing, RandomHorizontalFlip
 from torchvision.datasets import DatasetFolder
+import os.path
 
 import lightning as pl
 from utils import setup_logger
@@ -119,12 +120,32 @@ class DataModule(pl.LightningDataModule):
                  batch_size: int = 32,
                  num_workers:int = 4):
         super().__init__()
-        self.train_dir = train_dir
-        self.test_dir = test_dir
+        self.train_dir = self.get_data_dir(mode_heads, train_dir)
+        self.test_dir = self.get_data_dir(mode_heads, test_dir)
         self.raw_data_dir = raw_data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.mode_heads = mode_heads
+
+    def get_data_dir(self, mode_heads, base_folder):
+        """
+        Returns the path to the data directory
+
+        If there are two heads (fine and coarse), then get the 'fine' labels from the image file
+        and get the coarse labelsl from the raw data file
+
+        If there is only one head, then get the labels from the image file
+        """
+        if mode_heads == 'fine' or mode_heads == 'both':
+            suffix = 'fine'
+        elif mode_heads == 'coarse':
+            suffix = 'coarse'
+        else:
+            ValueError(f"mode_out {mode_heads} not recognized")
+
+        folder_name = os.path.join(base_folder, suffix)
+
+        return folder_name
 
     def setup(self, stage: Optional[str] = None):
         train_transforms = transforms.Compose([

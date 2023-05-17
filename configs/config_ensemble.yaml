@@ -13,9 +13,8 @@ trainer_params:
   accumulate_grad_batches: 1
 
 dataset:
-  train_dir: datasets/CIFAR100/train/fine
-  val_dir: datasets/CIFAR100/test/fine
-  test_dir: datasets/CIFAR100/test/fine
+  train_dir: datasets/CIFAR100/train
+  test_dir: datasets/CIFAR100/test
   raw_data_dir: ../datasets/cifar-100-python/  # needs a trailing slash
 
 logger:
