@@ -45,5 +45,5 @@ hparams:
 ckpt_callback:
   save_top_k: 2
   monitor: val_acc
-  mode: min
+  mode: max
   save_last: True

@@ -1,4 +1,4 @@
-seeds: [4, 5]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
+seeds: [4]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
 evaluate: True
 save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
 exp_name: bilateral_non_specialized
@@ -7,7 +7,7 @@ trainer_params:
   accelerator: auto
   devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 180
+  max_epochs: 200
   log_every_n_steps: 50
   check_val_every_n_epoch: 2
   accumulate_grad_batches: 1
@@ -22,9 +22,9 @@ logger:
   type: TensorBoardLogger
 
 hparams:
-  mode_out: 'pred'             # where to get output from:        [pred | feature]
-  mode_heads: 'both'           # which heads to sue:              [fine, coarse, both, features]
-  mode_hemis: 'bilateral'      # which hemispheres to use:        [unilateral, bilateral, ensemble]
+  mode_out: pred             # where to get output from:        [pred | feature]
+  mode_heads: both           # which heads to sue:              [fine, coarse, both, features]
+  mode_hemis: bilateral      # which hemispheres to use:        [unilateral, bilateral, ensemble]
   farch: vgg11            # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
   carch: vgg11            # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
   ffreeze: False
@@ -45,5 +45,5 @@ hparams:
 ckpt_callback:
   save_top_k: 1
   monitor: val_acc
-  mode: min
+  mode: max
   save_last: False
