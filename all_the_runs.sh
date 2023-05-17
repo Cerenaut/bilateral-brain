@@ -1,6 +1,6 @@
 
 echo ----------------------------------------------------------------
-echo -------- baseline: non specialised bilateral network   ---------
+echo -------- baseline: non-specialised bilateral network   ---------
 echo ----------------------------------------------------------------
 python trainer.py --config configs/config_bilateral_nspecialized.yaml
 

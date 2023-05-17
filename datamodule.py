@@ -15,13 +15,15 @@ from torchvision.transforms.transforms import CenterCrop, Normalize, \
                         RandomErasing, RandomHorizontalFlip
 from torchvision.datasets import DatasetFolder
 
-
 import lightning as pl
+from utils import setup_logger
+
+logger = setup_logger(__name__)
 
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
 
-TRAIN_VAL_SPLIT = 0.8   # proportion of training set to use for validation
+TRAIN_VAL_SPLIT = 1.0   # proportion of training set to use for validation
 
 def pil_loader(path: str) -> Image.Image:
     # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
@@ -139,31 +141,57 @@ class DataModule(pl.LightningDataModule):
         ])
 
         if self.mode_heads == 'both':
+            logger.debug("DataModule - setup double heads")
             train_set = DualHeadsDataset(
                 mode='train',
                 root=self.train_dir,
                 raw_data_path=self.raw_data_dir,
                 transform=train_transforms)
             
-            self.train_set, self.val_set = self.get_train_val_splits(train_set)  
-            
+            # special case of no split, then use test set for validation
+            if TRAIN_VAL_SPLIT == 1.0 or TRAIN_VAL_SPLIT == None:
+                logger.debug("Using test set for validation")
+                val_set = DualHeadsDataset(
+                    mode='test',
+                    root=self.test_dir,
+                    raw_data_path=self.raw_data_dir,
+                    transform=base_transforms)
+                self.train_set = train_set
+                self.val_set = val_set
+            else:
+                self.train_set, self.val_set = self.get_train_val_splits(train_set)  
+                self.val_set.transform = base_transforms
+
             self.test_set = DualHeadsDataset(
                 mode='test',
                 root=self.test_dir,
                 raw_data_path=self.raw_data_dir,
                 transform=base_transforms)        
         else:
+            logger.debug("DataModule - single head")
             train_set = SingleHeadDataset(
                 root=self.train_dir,
                 transform=train_transforms)
 
-            self.train_set, self.val_set = self.get_train_val_splits(train_set)            
+            # special case of no split, then use train set for validation
+            if TRAIN_VAL_SPLIT == 1.0 or TRAIN_VAL_SPLIT == None:
+                logger.debug("Using test set for validation")
+                val_set = SingleHeadDataset(
+                    root=self.test_dir,
+                    transform=base_transforms)
+
+                self.train_set = train_set
+                self.val_set = val_set
+            else:
+                self.train_set, self.val_set = self.get_train_val_splits(train_set)            
+                self.val_set.transform = base_transforms
             
             self.test_set = SingleHeadDataset(
                 root=self.test_dir,
                 transform=base_transforms)
 
     def get_train_val_splits(self, train_set):
+
         train_set_size = int(len(train_set) * TRAIN_VAL_SPLIT)
         valid_set_size = len(train_set) - train_set_size
         train_set, val_set = random_split(train_set, [train_set_size, valid_set_size])
