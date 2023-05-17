@@ -22,11 +22,11 @@ logger:
   type: TensorBoardLogger
 
 hparams:
-  mode_out: 'both'            # where to get output from:         [pred | feature]
-  mode_heads:                   # [fine, coarse, both, features]
-  mode_hemis:               # [unilateral, bilateral, ensemble]
-  farch: 'vgg11'            # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
-  carch: 'vgg11'            # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
+  mode_out: pred            # where to get output from:         [pred | feature]
+  mode_heads: fine          # [fine, coarse, both, features]
+  mode_hemis: bilateral     # [unilateral, bilateral, ensemble]
+  farch: vgg11              # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  carch: vgg11              # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
   ffreeze: True
   cfreeze: True
   lr: 1.0e-4
@@ -39,7 +39,7 @@ hparams:
   coarse_k: 
   coarse_per_k: 
   dropout: 0.6
-  model_path_fine:   # source location of specific checkpoint to load
+  model_path_fine:     # source location of specific checkpoint to load
   model_path_coarse:   # path to broad model checkpoint
 
 ckpt_callback:
