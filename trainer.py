@@ -17,6 +17,7 @@ from supervised_single_head import SupervisedLightningModuleSingleHead
 
 from utils import run_cli, yaml_func
 
+DEBUG = False
 
 def get_exp_names(config, seed):
     mode_hemis = config['hparams']['mode_hemis']
@@ -129,12 +130,18 @@ def main(config_path) -> None:
         else:
             model = SupervisedLightningModuleSingleHead(config)
 
-        trainer = pl.Trainer(**config['trainer_params'],
+        if DEBUG:
+            trainer = pl.Trainer(**config['trainer_params'],
+                            callbacks=[ckpt_callback],
+                            logger=logger,
+                            fast_dev_run=True,
+                            limit_train_batches=0.05,
+                            limit_val_batches=0.1,
+                            limit_test_batches=0.1)
+        else:
+            trainer = pl.Trainer(**config['trainer_params'],
                             callbacks=[ckpt_callback],
                             logger=logger)
-                            # limit_train_batches=0.05,
-                            # limit_val_batches=0.1,
-                            # limit_test_batches=0.1)
 
         imdm = DataModule(mode_heads,
                           train_dir=config['dataset']['train_dir'],
@@ -162,6 +169,10 @@ def main(config_path) -> None:
                 add_results_dual(seed, result, runs, accuracies)
             else:
                 add_results_single(seed, result, runs, accuracies)
+            
+            # write results to a yaml file
+            with open(f'{dest_dir}/result.yaml', 'w') as f:
+                yaml.dump(result, f)
 
     if config["evaluate"]:
         if mode_heads == 'both':
@@ -170,7 +181,7 @@ def main(config_path) -> None:
             results = collect_results_single(runs, accuracies)
 
         # write the results list to a yaml file
-        with open(f'{dest_dir}/results.yaml', 'w') as f:
+        with open(f'{dest_dir}/result_all.yaml', 'w') as f:
             yaml.dump(results, f)
 
     return checkpoints

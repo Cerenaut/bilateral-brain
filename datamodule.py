@@ -147,7 +147,62 @@ class DataModule(pl.LightningDataModule):
 
         return folder_name
 
+    def setup_data_dual_heads(self, train_transforms, base_transforms):
+        logger.debug("DataModule - setup double heads")
+        train_set = DualHeadsDataset(
+            mode='train',
+            root=self.train_dir,
+            raw_data_path=self.raw_data_dir,
+            transform=train_transforms)
+        
+        # special case of no split, then use test set for validation
+        if TRAIN_VAL_SPLIT == 1.0 or TRAIN_VAL_SPLIT == None:
+            logger.debug("Using test set for validation")
+            val_set = DualHeadsDataset(
+                mode='test',
+                root=self.test_dir,
+                raw_data_path=self.raw_data_dir,
+                transform=base_transforms)
+            
+            self.train_set = train_set
+            self.val_set = val_set
+        else:
+            logger.debug(f"Using {TRAIN_VAL_SPLIT} proportion of train set for validation")
+            self.train_set, self.val_set = self.get_train_val_splits(train_set)  
+            self.val_set.transform = base_transforms
+
+        self.test_set = DualHeadsDataset(
+            mode='test',
+            root=self.test_dir,
+            raw_data_path=self.raw_data_dir,
+            transform=base_transforms)        
+        
+    def setup_data_single_head(self, train_transforms, base_transforms):
+        logger.debug("DataModule - setup single head")
+        train_set = SingleHeadDataset(
+            root=self.train_dir,
+            transform=train_transforms)
+
+        # special case of no split, then use train set for validation
+        if TRAIN_VAL_SPLIT == 1.0 or TRAIN_VAL_SPLIT == None:
+            logger.debug("Using test set for validation")
+            val_set = SingleHeadDataset(
+                root=self.test_dir,
+                transform=base_transforms)
+
+            self.train_set = train_set
+            self.val_set = val_set
+        else:
+            logger.debug(f"Using {TRAIN_VAL_SPLIT} proportion of train set for validation")
+            self.train_set, self.val_set = self.get_train_val_splits(train_set)            
+            self.val_set.transform = base_transforms
+        
+        self.test_set = SingleHeadDataset(
+            root=self.test_dir,
+            transform=base_transforms)
+    
     def setup(self, stage: Optional[str] = None):
+        logger.debug("*********** DataModule - setup ***********")
         train_transforms = transforms.Compose([
             transforms.RandomCrop(32, padding=4, padding_mode='reflect'), 
             transforms.RandomHorizontalFlip(),
@@ -162,54 +217,18 @@ class DataModule(pl.LightningDataModule):
         ])
 
         if self.mode_heads == 'both':
-            logger.debug("DataModule - setup double heads")
-            train_set = DualHeadsDataset(
-                mode='train',
-                root=self.train_dir,
-                raw_data_path=self.raw_data_dir,
-                transform=train_transforms)
-            
-            # special case of no split, then use test set for validation
-            if TRAIN_VAL_SPLIT == 1.0 or TRAIN_VAL_SPLIT == None:
-                logger.debug("Using test set for validation")
-                val_set = DualHeadsDataset(
-                    mode='test',
-                    root=self.test_dir,
-                    raw_data_path=self.raw_data_dir,
-                    transform=base_transforms)
-                self.train_set = train_set
-                self.val_set = val_set
-            else:
-                self.train_set, self.val_set = self.get_train_val_splits(train_set)  
-                self.val_set.transform = base_transforms
-
-            self.test_set = DualHeadsDataset(
-                mode='test',
-                root=self.test_dir,
-                raw_data_path=self.raw_data_dir,
-                transform=base_transforms)        
+            self.setup_data_dual_heads(train_transforms, base_transforms)
         else:
-            logger.debug("DataModule - single head")
-            train_set = SingleHeadDataset(
-                root=self.train_dir,
-                transform=train_transforms)
+            self.setup_data_single_head(train_transforms, base_transforms)
 
-            # special case of no split, then use train set for validation
-            if TRAIN_VAL_SPLIT == 1.0 or TRAIN_VAL_SPLIT == None:
-                logger.debug("Using test set for validation")
-                val_set = SingleHeadDataset(
-                    root=self.test_dir,
-                    transform=base_transforms)
+        logger.debug(f"Train set size: {len(self.train_set)}")
+        logger.debug(f"Train set transformation: {self.train_set.transform}")
 
-                self.train_set = train_set
-                self.val_set = val_set
-            else:
-                self.train_set, self.val_set = self.get_train_val_splits(train_set)            
-                self.val_set.transform = base_transforms
-            
-            self.test_set = SingleHeadDataset(
-                root=self.test_dir,
-                transform=base_transforms)
+        logger.debug(f"Validation set size: {len(self.val_set)}")
+        logger.debug(f"Validation set transformation: {self.val_set.transform}")
+
+        logger.debug(f"Test set size: {len(self.test_set)}")
+        logger.debug(f"Test set transformation: {self.test_set.transform}")
 
     def get_train_val_splits(self, train_set):
 
