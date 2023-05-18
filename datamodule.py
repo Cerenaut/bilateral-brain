@@ -24,14 +24,13 @@ logger = setup_logger(__name__)
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
 
-TRAIN_VAL_SPLIT = 0.8   # proportion of training set to use for validation
+TRAIN_VAL_SPLIT = 0.0   # proportion of training set to use for train, the remainder for validation
 
 def pil_loader(path: str) -> Image.Image:
     # open path as file to avoid ResourceWarning (https://github.com/python-pillow/Pillow/issues/835)
     with open(path, 'rb') as f:
         img = Image.open(f)
         return img.convert('RGB')
-
 
 class SingleHeadDataset(DatasetFolder):
     def __init__(
@@ -110,7 +109,6 @@ class DualHeadsDataset(Dataset):
     def __len__(self):
         return len(self.samples)
 
-
 class DataModule(pl.LightningDataModule):
     def __init__(self, 
                  mode_heads: str = 'both',
@@ -141,7 +139,7 @@ class DataModule(pl.LightningDataModule):
         elif mode_heads == 'coarse':
             suffix = 'coarse'
         else:
-            ValueError(f"mode_out {mode_heads} not recognized")
+            raise ValueError(f"mode_out {mode_heads} not recognized")
 
         folder_name = os.path.join(base_folder, suffix)
 
@@ -156,7 +154,7 @@ class DataModule(pl.LightningDataModule):
             transform=train_transforms)
         
         # special case of no split, then use test set for validation
-        if TRAIN_VAL_SPLIT == 1.0 or TRAIN_VAL_SPLIT == None:
+        if TRAIN_VAL_SPLIT == 0.0 or TRAIN_VAL_SPLIT == None:
             logger.debug("Using test set for validation")
             val_set = DualHeadsDataset(
                 mode='test',
@@ -167,7 +165,7 @@ class DataModule(pl.LightningDataModule):
             self.train_set = train_set
             self.val_set = val_set
         else:
-            logger.debug(f"Using {TRAIN_VAL_SPLIT} proportion of train set for validation")
+            logger.debug(f"Using {TRAIN_VAL_SPLIT} proportion of train set for train, remainder for validation")
             self.train_set, self.val_set = self.get_train_val_splits(train_set)  
             self.val_set.transform = base_transforms
 
@@ -179,31 +177,38 @@ class DataModule(pl.LightningDataModule):
         
     def setup_data_single_head(self, train_transforms, base_transforms):
         logger.debug("DataModule - setup single head")
+
         train_set = SingleHeadDataset(
             root=self.train_dir,
             transform=train_transforms)
 
-        # special case of no split, then use train set for validation
-        if TRAIN_VAL_SPLIT == 1.0 or TRAIN_VAL_SPLIT == None:
+        # special case of no split, then use test set for validation
+        if TRAIN_VAL_SPLIT == 0.0 or TRAIN_VAL_SPLIT == None:
             logger.debug("Using test set for validation")
+
             val_set = SingleHeadDataset(
                 root=self.test_dir,
                 transform=base_transforms)
-
-            self.train_set = train_set
+            
             self.val_set = val_set
+            self.train_set = train_set
         else:
-            logger.debug(f"Using {TRAIN_VAL_SPLIT} proportion of train set for validation")
+            logger.debug(f"Using {TRAIN_VAL_SPLIT} proportion of train set for train, remainder for validation")
             self.train_set, self.val_set = self.get_train_val_splits(train_set)            
-            self.val_set.transform = base_transforms
-        
+
         self.test_set = SingleHeadDataset(
             root=self.test_dir,
             transform=base_transforms)
-    
+            
+    def get_train_val_splits(self, train_set):
+        train_set_size = int(len(train_set) * TRAIN_VAL_SPLIT)
+        valid_set_size = len(train_set) - train_set_size
+        train_set, val_set = random_split(train_set, [train_set_size, valid_set_size])
+        return train_set, val_set
+
     def setup(self, stage: Optional[str] = None):
         logger.debug("*********** DataModule - setup ***********")
-        train_transforms = transforms.Compose([
+        train_transform = transforms.Compose([
             transforms.RandomCrop(32, padding=4, padding_mode='reflect'), 
             transforms.RandomHorizontalFlip(),
             transforms.Resize(32),
@@ -215,41 +220,41 @@ class DataModule(pl.LightningDataModule):
             transforms.ToTensor(),
             transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
         ])
+        
+        self.setup_data_single_head(train_transform, base_transforms)
+
+        return
+
 
         if self.mode_heads == 'both':
-            self.setup_data_dual_heads(train_transforms, base_transforms)
+            self.setup_data_dual_heads(train_transform, base_transforms)
         else:
-            self.setup_data_single_head(train_transforms, base_transforms)
+            self.setup_data_single_head(train_transform, base_transforms)
 
         logger.debug(f"Train set size: {len(self.train_set)}")
-        logger.debug(f"Train set transformation: {self.train_set.transform}")
+        # logger.debug(f"Train set transformation: {self.train_set.transform}")
 
         logger.debug(f"Validation set size: {len(self.val_set)}")
-        logger.debug(f"Validation set transformation: {self.val_set.transform}")
+        # logger.debug(f"Validation set transformation: {self.val_set.transform}")
 
         logger.debug(f"Test set size: {len(self.test_set)}")
-        logger.debug(f"Test set transformation: {self.test_set.transform}")
-
-    def get_train_val_splits(self, train_set):
-
-        train_set_size = int(len(train_set) * TRAIN_VAL_SPLIT)
-        valid_set_size = len(train_set) - train_set_size
-        train_set, val_set = random_split(train_set, [train_set_size, valid_set_size])
-        return train_set, val_set
+        # logger.debug(f"Test set transformation: {self.test_set.transform}")
 
     def train_dataloader(self):
         return DataLoader(self.train_set,
+                          shuffle=True,
                             batch_size=self.batch_size, 
                             num_workers=self.num_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.val_set, 
-                            batch_size=self.batch_size,
-                            num_workers=self.num_workers)
+        return DataLoader(self.val_set,
+                          shuffle=False, 
+                          batch_size=self.batch_size,
+                          num_workers=self.num_workers)
 
     def test_dataloader(self):
         return DataLoader(self.test_set,
-                            shuffle=False,
-                            batch_size=self.batch_size,
-                            num_workers=self.num_workers)
+                          shuffle=False,
+                          batch_size=self.batch_size,
+                          num_workers=self.num_workers)
     

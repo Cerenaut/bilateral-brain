@@ -71,6 +71,17 @@
                 "PYTHONPATH": "${workspaceRoot}"
             },
             "console": "integratedTerminal"
-        },        
+        },
+        {
+            "name": "uni - specialize",
+            "type": "python",
+            "request": "launch",
+            "program": "trainer.py",
+            "args": ["--config", "./configs/config_unilateral_specialize.yaml"],
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+            "console": "integratedTerminal"
+        },         
     ]
 }

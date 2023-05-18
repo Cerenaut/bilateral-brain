@@ -32,7 +32,7 @@ def get_exp_names(config, seed):
     elif mode_hemis == 'unilateral':
         arch_string = f"{config['hparams']['farch']}"  # default name
     else:
-        ValueError(f"mode_hemis {mode_hemis} not recognized")
+        raise ValueError(f"mode_hemis {mode_hemis} not recognized")
 
     exp_name = f"{config['exp_name']}-{config['hparams']['mode_hemis']}-{arch_string}-{config['hparams']['mode_heads']}"
     date_time = datetime.now().strftime("%Y%m%d%H%M%S")

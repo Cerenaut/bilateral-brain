@@ -127,7 +127,7 @@ class UnilateralNet(nn.Module):
         logger.debug(f"------- Initialize UnilateralNet with mode_heads: {mode_heads}, mode_out: {mode_out}, arch: {arch}, model_path: {model_path}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
 
         if for_ensemble and mode_heads != 'both':
-            ValueError('For ensemble, mode_heads must be "both"')
+            raise ValueError('For ensemble, mode_heads must be "both"')
         check_modes(mode_heads, mode_out)
 
         self.mode_heads = mode_heads
