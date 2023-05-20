@@ -1,4 +1,4 @@
-seeds: [4]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
+seeds: [41, 42, 43, 44, 45]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
 evaluate: True
 save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
 exp_name: bilateral_non_specialized
