@@ -147,6 +147,7 @@ class DataModule(pl.LightningDataModule):
 
     def setup_data_dual_heads(self, train_transforms, base_transforms):
         logger.debug("DataModule - setup double heads")
+
         train_set = DualHeadsDataset(
             mode='train',
             root=self.train_dir,
@@ -156,24 +157,24 @@ class DataModule(pl.LightningDataModule):
         # special case of no split, then use test set for validation
         if TRAIN_VAL_SPLIT == 0.0 or TRAIN_VAL_SPLIT == None:
             logger.debug("Using test set for validation")
+
             val_set = DualHeadsDataset(
                 mode='test',
                 root=self.test_dir,
                 raw_data_path=self.raw_data_dir,
                 transform=base_transforms)
             
-            self.train_set = train_set
             self.val_set = val_set
+            self.train_set = train_set
         else:
             logger.debug(f"Using {TRAIN_VAL_SPLIT} proportion of train set for train, remainder for validation")
             self.train_set, self.val_set = self.get_train_val_splits(train_set)  
-            self.val_set.transform = base_transforms
 
         self.test_set = DualHeadsDataset(
             mode='test',
             root=self.test_dir,
             raw_data_path=self.raw_data_dir,
-            transform=base_transforms)        
+            transform=base_transforms)
         
     def setup_data_single_head(self, train_transforms, base_transforms):
         logger.debug("DataModule - setup single head")
@@ -221,11 +222,6 @@ class DataModule(pl.LightningDataModule):
             transforms.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
         ])
         
-        self.setup_data_single_head(train_transform, base_transforms)
-
-        return
-
-
         if self.mode_heads == 'both':
             self.setup_data_dual_heads(train_transform, base_transforms)
         else:
