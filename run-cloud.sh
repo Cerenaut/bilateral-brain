@@ -32,7 +32,7 @@ ssh -p 22 ubuntu@${host} 'bash --login -s' <<ENDSSH
   wget https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz
   tar -xf cifar-100-python.tar.gz
   cd ../bilateral-brain
-  bash data_scripts/prepare_cifar.py
+  python data_scripts/prepare_cifar.py
 
   # Install conda
   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
@@ -49,6 +49,9 @@ ssh -p 22 ubuntu@${host} 'bash --login -s' <<ENDSSH
 
   # Start experiment in a new screen session, named "experiment"
   screen -dmS experiment bash -c '
+
+    conda activate bilateral
+
     # Construct the run command
     cmd="sudo python trainer.py --config $json"
     echo \$cmd
