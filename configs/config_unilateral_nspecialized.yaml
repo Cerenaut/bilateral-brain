@@ -37,6 +37,7 @@ hparams:
   fine_per_k: 
   coarse_k: 
   coarse_per_k: 
+  dropout: 0.6
   # model_path_fine: path_to_checkpoint  # path to narrow model checkpoint
   # model_path_coarse: path_to_checkpoint  # path to broad model checkpoint
 
