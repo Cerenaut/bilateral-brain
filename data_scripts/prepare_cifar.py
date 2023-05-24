@@ -21,8 +21,8 @@ def unpickle(file):
     
 # set paths here
 # ------------------------------------------------------
-metadata_path = '/home/gideon/Dev/datasets/cifar-100-python/meta' # source cifar 'meta' file
-raw_data_path = '/home/gideon/Dev/datasets/cifar-100-python/' # source cifar files here (must have a trailing slash)
+metadata_path = '/home/ubuntu/datasets/cifar-100-python/meta' # source cifar 'meta' file
+raw_data_path = '/home/ubuntu/datasets/cifar-100-python/' # source cifar files here (must have a trailing slash)
 target_dir = 'datasets/CIFAR100'    # the output images go here
 # ------------------------------------------------------
 

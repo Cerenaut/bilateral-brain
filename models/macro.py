@@ -191,7 +191,7 @@ class EnsembleNet(nn.Module):
         logger.debug(f"------- Initialize EnsembleNet with arch: {arch}, model_path_list: {model_path_list}, k: {k}, per_k: {per_k}, freeze_params: {freeze_params}, dropout: {dropout}")
 
         def create_load_model(model_path):
-            model = UnilateralNet('both', arch, model_path, freeze_params, k, per_k, dropout, for_ensemble=True)
+            model = UnilateralNet('both', 'pred', arch, model_path, freeze_params, k, per_k, dropout, for_ensemble=True)
             load_uni_model(model, model_path)
             return model
 

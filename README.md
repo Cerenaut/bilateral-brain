@@ -54,6 +54,15 @@ The hemispheres are pre-trained in step (1), and so here they are frozen (they w
 
 Download [CIFAR100](https://www.cs.toronto.edu/~kriz/cifar.html) for python, and put it in your chosen folder.
 
+```
+mkdir ../datasets
+cd ../datasets
+wget https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz
+tar -xf cifar-100-python.tar.gz
+cd ../bilateral-brain
+bash data_scripts/prepare_cifar.py
+```
+
 Modify the paths in `data_scripts/prepare_cifar.py` (at the top of the file), and run the script to create the fine and coarse dataset folders.
 
 Each folder has a `config.yaml` which you can use configure the experiment.

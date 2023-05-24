@@ -1,4 +1,4 @@
-seeds: [70, 80]         # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
+seeds: [71, 81, 82, 83, 84]         # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
 evaluate: True
 save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
 exp_name: unilateral_non_specialized
@@ -37,6 +37,7 @@ hparams:
   fine_per_k: 
   coarse_k: 
   coarse_per_k: 
+  dropout: 0.6
   # model_path_fine: path_to_checkpoint  # path to narrow model checkpoint
   # model_path_coarse: path_to_checkpoint  # path to broad model checkpoint
 
