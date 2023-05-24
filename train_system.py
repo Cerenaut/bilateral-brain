@@ -7,10 +7,8 @@ from utils import run_cli, mod_filename
 import trainer
 
 data = {'fine': {}, 'coarse': {}}
-data['fine']['train'] = 'datasets/CIFAR100/train/fine'
-data['fine']['test'] = 'datasets/CIFAR100/test/fine'
-data['coarse']['train'] = 'datasets/CIFAR100/train/coarse'
-data['coarse']['test'] = 'datasets/CIFAR100/test/coarse'
+data['train'] = 'datasets/CIFAR100/train'
+data['test'] = 'datasets/CIFAR100/test'
 data['raw'] = '../datasets/cifar-100-python/'
 
 # this will be populated in train_system.py
@@ -33,9 +31,9 @@ def train_hemispheres(arch, base_config_path, num_seeds, epochs):
     doc['seeds'] = list(range(num_seeds))
     doc['hparams']['mode_heads'] = label_type
     doc['hparams']['arch'] = arch
-    doc['dataset']['train_dir'] = data[label_type]['train']
-    doc['dataset']['val_dir'] = data[label_type]['test']
-    doc['dataset']['test_dir'] = data[label_type]['test']
+    doc['dataset']['train_dir'] = data['train']
+    doc['dataset']['val_dir'] = data['test']
+    doc['dataset']['test_dir'] = data['test']
     doc['dataset']['raw_data_dir'] = data['raw']
 
     if epochs is not None:
@@ -73,9 +71,9 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
     doc['hparams']['model_path_fine'] = f_checkpoint      # load fine hemisphere
     doc['hparams']['model_path_coarse'] = c_checkpoint    # load coarse hemisphere
 
-    doc['dataset']['train_dir'] = data['fine']['train']
-    doc['dataset']['val_dir'] = data['fine']['test']
-    doc['dataset']['test_dir'] = data['fine']['test']
+    doc['dataset']['train_dir'] = data['train']
+    doc['dataset']['val_dir'] = data['test']
+    doc['dataset']['test_dir'] = data['test']
     doc['dataset']['raw_data_dir'] = data['raw']
 
     if epochs is not None:
