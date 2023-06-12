@@ -65,7 +65,7 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
   for i, (f_checkpoint, c_checkpoint) in enumerate(zip(f_checkpoints, c_checkpoints)):
 
     # customize params
-    doc['seeds'] = [i]                                     # new seed for each unique set of hemispheres
+    doc['seeds'] = [i]                                    # new seed for each unique set of hemispheres
     doc['hparams']['farch'] = f_arch                      # architecture for fine
     doc['hparams']['carch'] = c_arch                      # architecture for coarse
     doc['hparams']['mode_output'] = 'both'                # output from both heads

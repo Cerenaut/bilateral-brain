@@ -23,7 +23,7 @@ hparams:
   mode_out: pred             # where to get output from:        [pred | feature]
   mode_heads: coarse         # which heads to use:              [fine, coarse, both, features]
   mode_hemis: unilateral     # which hemispheres to use:        [unilateral, bilateral, ensemble]
-  farch: vgg11               # architecture for hemisphere (fine or default if only one hemisphere)  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11]
+  farch: resnet9             # architecture for hemisphere (fine or default if only one hemisphere)  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11]
   ffreeze: False
   lr: 1.0e-4
   weight_decay: 1.0e-3

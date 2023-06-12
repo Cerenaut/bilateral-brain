@@ -1,0 +1,5 @@
+checkpoints: ['./runs/unilateral_specialize-unilateral-vgg11-fine/20230515204704-seed0/checkpoints/epoch=0-val_acc=0.011.ckpt', 
+  './runs/unilateral_specialize-unilateral-vgg11-fine/20230515204748-seed1/checkpoints/epoch=0-val_acc=0.009.ckpt', 
+  './runs/unilateral_specialize-unilateral-vgg11-fine/20230515204855-seed2/checkpoints/epoch=0-val_acc=0.009.ckpt', 
+  './runs/unilateral_specialize-unilateral-vgg11-fine/20230515204927-seed3/checkpoints/epoch=0-val_acc=0.010.ckpt', 
+  './runs/unilateral_specialize-unilateral-vgg11-fine/20230515205025-seed4/checkpoints/epoch=0-val_acc=0.011.ckpt']

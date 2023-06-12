@@ -21,10 +21,10 @@ logger:
   type: TensorBoardLogger
 
 hparams:
-  mode_out: 'pred'             # where to get output from:        [pred | feature]
-  mode_heads: 'both'           # which heads to use:              [fine, coarse, both, features]
-  mode_hemis: 'ensemble'       # which hemispheres to use:        [unilateral, bilateral, ensemble]
-  farch: 'vgg11'               # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  mode_out: pred               # where to get output from:        [pred | feature]
+  mode_heads: both             # which heads to use:              [fine, coarse, both, features]
+  mode_hemis: ensemble         # which hemispheres to use:        [unilateral, bilateral, ensemble]
+  farch: resnet9               # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
   ffreeze: True
   lr: 1.0e-4
   weight_decay: 1.0e-5

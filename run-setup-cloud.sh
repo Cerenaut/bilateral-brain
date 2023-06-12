@@ -36,7 +36,7 @@ ssh -p 22 ubuntu@${host} 'bash --login -s' <<ENDSSH
 
   # Install conda
   wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-  yes | bash Miniconda3-latest-Linux-x86_64.sh
+  bash Miniconda3-latest-Linux-x86_64.sh
   source ~/.bashrc
   conda create -n bilateral python=3.9
 
@@ -46,24 +46,6 @@ ssh -p 22 ubuntu@${host} 'bash --login -s' <<ENDSSH
   
   conda activate bilateral
   sudo pip install -r requirements.txt
-
-  # Start experiment in a new screen session, named "experiment"
-  screen -dmS experiment bash -c '
-
-    conda activate bilateral
-
-    # Construct the run command
-    cmd="sudo python trainer.py --config $json"
-    echo \$cmd
-
-    # On success, end screen session
-    if eval \$cmd; then
-      exit
-    # Otherwise, maintain session to investigate errors
-    else
-      exec bash
-    fi
-  '
 
 ENDSSH
 

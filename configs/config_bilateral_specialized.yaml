@@ -24,8 +24,8 @@ hparams:
   mode_out: pred            # where to get output from:        [pred | feature]
   mode_heads: both          # which heads to sue:              [fine, coarse, both, features]
   mode_hemis: bilateral     # which hemispheres to use:        [unilateral, bilateral, ensemble]
-  farch: vgg11          # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
-  carch: vgg11          # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
+  farch: resnet9          # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  carch: resnet9          # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
   ffreeze: True
   cfreeze: True
   lr: 1.0e-4
