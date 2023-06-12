@@ -65,7 +65,7 @@ class SupervisedLightningModuleDualHead(LightningModule):
             "fine_per_k": self.config["hparams"].get("fine_per_k"),
             "coarse_k": self.config["hparams"].get("coarse_k"),
             "coarse_per_k": self.config["hparams"].get("coarse_per_k"),
-            "dropout": self.config["hparams"].get("dropout", 1.0),
+            "dropout": self.config["hparams"].get("dropout", 0.0),
             }
         args = Namespace(**mydict)
 
