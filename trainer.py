@@ -19,6 +19,9 @@ from utils import run_cli, yaml_func
 
 DEBUG = False
 
+def count_trainable_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
 def get_exp_names(config, seed):
     mode_hemis = config['hparams']['mode_hemis']
 
@@ -129,6 +132,9 @@ def main(config_path) -> None:
             model = SupervisedLightningModuleDualHead(config)
         else:
             model = SupervisedLightningModuleSingleHead(config)
+
+        num_trainable_params = count_trainable_parameters(model)
+        print(f'+++++++++ Number of trainable parameters: {num_trainable_params} +++++++++')
 
         if DEBUG:
             trainer = pl.Trainer(**config['trainer_params'],

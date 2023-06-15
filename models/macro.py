@@ -23,9 +23,12 @@ def check_modes(mode_heads, mode_out):
         raise ValueError('Mode_out is invalid')
 
 def add_head(num_features, num_classes, dropout):
+
+    logger.debug(f"------- Add head with num_features: {num_features}, num_classes: {num_classes}, dropout: {dropout}")
+
     mod =nn.Sequential(
-    nn.Dropout(dropout),
-    nn.Linear(num_features, num_classes))
+        nn.Dropout(dropout),
+        nn.Linear(num_features, num_classes))
     return mod
 
 class BilateralNet(nn.Module):
@@ -65,19 +68,18 @@ class BilateralNet(nn.Module):
 
         # load the saved trained parameters, and freeze from further training
         if fmodel_path is not None and fmodel_path != '':
-            str = "------- Load fine hemisphere"
+            logger.debug("------- Load fine hemisphere")
             load_hemi_model(self.fine_hemi, fmodel_path)
-            if ffreeze_params:
-                freeze_params(self.fine_hemi)
-                str += "      ---> and freeze"
-            logger.debug(str)
         if cmodel_path is not None and cmodel_path != '':
-            str = "------- Load coarse hemisphere"
+            logger.debug("------- Load coarse hemisphere")
             load_hemi_model(self.coarse_hemi, cmodel_path)
-            if cfreeze_params:
-                freeze_params(self.coarse_hemi)
-                str += "     ---> and freeze"
-            logger.debug(str)
+        
+        if ffreeze_params:
+            freeze_params(self.fine_hemi)
+            logger.debug("      ---> freeze fine")
+        if cfreeze_params:
+            freeze_params(self.coarse_hemi)
+            logger.debug("     ---> freeze coarse")
 
         # add heads
         num_features = self.fine_hemi.num_features + self.coarse_hemi.num_features
