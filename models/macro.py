@@ -26,7 +26,7 @@ def add_head(num_features, num_classes, dropout):
 
     logger.debug(f"------- Add head with num_features: {num_features}, num_classes: {num_classes}, dropout: {dropout}")
 
-    mod =nn.Sequential(
+    mod = nn.Sequential(
         nn.Dropout(dropout),
         nn.Linear(num_features, num_classes))
     return mod
@@ -146,6 +146,10 @@ class UnilateralNet(nn.Module):
             self.fine_head = add_head(num_features, 100, dropout)
         if self.mode_heads == 'coarse' or self.mode_heads == 'both':                    
             self.coarse_head = add_head(num_features, 20, dropout)
+
+        if model_path is not None and model_path != '':
+            logger.debug("------- Load hemisphere")
+            load_uni_model(self, model_path)
 
     def forward(self, x):
         embed = self.hemisphere(x)
