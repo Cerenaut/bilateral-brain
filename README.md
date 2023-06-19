@@ -23,16 +23,9 @@ In this project, we use a backbone (e.g. resnet or vgg type architectures) to cr
 
 - **Fine/Coarse**: This project is designed for hierarchical datasets such as CIFAR100, where each image has a `fine` and a `coarse` label. `Fine` is the narrow/specific description, such as dolphin, and `Coarse` is the broad/general description, such as sea creature
 - **Architecture**: The backbone used i.e. the architecture for a single hemisphere
-- **Single/Dual Head**: The number of heads. Each head is a classifier, and can be trained on either fine labels or coarse labels
+- **Single/Dual Head**: The number of heads. Each head is a classifier, and can be trained on either fine labels or coarse labels. Uses `mode_heads` in config files.
 - **Macro-architecture**: The whole network, including hemispheres and heads. 
-
-There are variable number of hemispheres:
-Unilateral = 1 hemisphere
-Bilateral = 2 hemispheres
-
-There are also variable number of heads:
-Single or Dual
-
+There are variable number of hemispheres: Unilateral = 1 hemisphere, Bilateral = 2 hemispheres. Uses `mode_hemis` in config files. IMPORTANT, when set to unilateral, the config parameters for 'fine' are used e.g. farch to specify architecture, even if you chose `mode_heads = coarse`.
 
 
 ## The main idea
@@ -45,13 +38,7 @@ The output of each hemisphere are concatenated to create one set of features tha
 The hemispheres are pre-trained in step (1), and so here they are frozen (they will not be trained); only the heads are trained and tested.
 
 
-## Guide to the folder structure:
-- `arch_single_head`: Train/Test one single hemisphere, with one head
-- `arch_dual_head`: Train/Test a macro-architecture consisting of optionally one or two hemispheres, with two heads
-
-
 ## Preparing the data
-
 Download [CIFAR100](https://www.cs.toronto.edu/~kriz/cifar.html) for python, and put it in your chosen folder.
 
 ```
@@ -68,54 +55,47 @@ Modify the paths in `data_scripts/prepare_cifar.py` (at the top of the file), an
 Each folder has a `config.yaml` which you can use configure the experiment.
 In particular, set the path to dataset and checkpoints there.
 
-In each folder you have:
-
-- `trainer.py`: used to train and validate
-- `test.py`: used to test
+The main entry point is `trainer.py`, used to train, validate and test.
 
 ## Run the system
 The easiest way to run the system in the stereotypical way (as in the section 'The main idea' above), is to use the `train_system.py` script. It enables you to run several seeds for each single hemisphere, and then run several seeds on the whole bilateral architecture also. It is also quite configurable i.e. different backbones.
 The script depends the base configs and modifies them.
 
-You can have finer level control, and do different variations, by running `trainer.py` in `arch_single_head` and in `arch_dual_head` and creating new config files as required.
+You can have finer level control, and do different variations, by running `trainer.py` and creating new config files as required. A number of pre-set configs are also available and can be modified, in the `config` folder.
+
+e.g. ``python trainer.py --config configs/config_file.yaml``
 
 Examples of how to do that are given below, first in the context of the stereotypical scenario
 
 
 ## Example 1: bilateral architecture with specialization
-
 As an example, here are step by step instructions to train Left on fine classes and Right on coarse classes, then put them together into bilateral architecture and train on all class types.
 
 This will specialize the left for fine and the right for coarse classes, using supervised training. As in the paper, you can then apply additional asymmetries to enhance specializations such as sparsity or having hemispheres with asymmetric layer widths.
 
 ### 1. Train Left on specific/fine labels
-
-Go to `arch_single_head` folder.
-
 Configure the experiment by modifying the `config.yaml` file in the `config/` folder, to:
 
 - use specific labels (`config/dataset/`), and
 - change the name of the experiments (`config/exp_name`) 
-- update `mode` appropriately: `fine` for fine labels, `coarse` for coarse labels or `feature` for the features rather than a prediction
-- update `arch` to set the backbone architecture
-- set `evaluate` to `True` if you want to also test the accuracy after training
+- update `mode_heads` appropriately: `fine` for fine labels, `coarse` for coarse labels
+- ensure `mode_hemis` is set to unilateral for single hemisphere
+- ensure `mode_out` is set to `pred` to get the classification ouput (as opposed to raw features)
+- update `farch` to set the backbone architecture. 
+- set `evaluate` to `True` if you want to also test the accuracy during training
 - see `config.yaml` for explanations of other parameters
 
 Then run:
 ``python trainer.py``
 
-
 #### 2. Train Right on general/coarse labels 
-
 Then do it all again on coarse labels to train the Right hemisphere.
 
 #### 3. Create bilateral architecture
-
-Go to `arch_dual_heads` folder.
 Configure to use the appropriate checkpoints to load the Left and Right hemispheres.
 
-- update `mode` to `both`. In this case it determins where the output is taken from.
-- update `macro_arch` to `bilateral`
+- update `mode_heads` to `both`. In this case it determins where the output is taken from.
+- update `mode_hemis` to `bilateral`
 - set the `farch` and `carch` to the appropriate backbones of `fine` and `coarse` hemispheres respectively
 - set them to be fronzen with `ffreeze` and `cfreeze`
 - set the dataset paths in the config to point to the `fine` folders and include the path to the raw files.
@@ -138,10 +118,9 @@ Then run:
 
 ## Example 2: How to train a single hemisphere on two labels
 
-Use `\arch_dual_heads`. 
-- this time set the config hparam `macro_arch` to `unilateral`
+- set the config hparam `mode_hemis` to `unilateral`
+- set the config hparam `mode_heads` to `both`
 - it will use all the `fine` hparams e.g. farch and ffreeze, to specify this one hemisphere
 - set `ffreeze` to False
 
-Then run:
-``python trainer.py``
+Then run: ``python trainer.py``
