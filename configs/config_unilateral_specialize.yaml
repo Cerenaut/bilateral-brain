@@ -7,7 +7,7 @@ trainer_params:
   accelerator: auto
   devices: auto
   default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
-  max_epochs: 180
+  max_epochs: 400
   log_every_n_steps: 50
   check_val_every_n_epoch: 2
   accumulate_grad_batches: 1
@@ -21,17 +21,18 @@ logger:
 
 hparams:
   mode_out: pred             # where to get output from:        [pred | feature]
-  mode_heads: coarse         # which heads to use:              [fine, coarse, both, features]
+  mode_heads: fine           # which heads to use:              [fine, coarse, both, features]
   mode_hemis: unilateral     # which hemispheres to use:        [unilateral, bilateral, ensemble]
-  farch: resnet9             # architecture for hemisphere (fine or default if only one hemisphere)  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11]
+  farch: vgg11               # architecture for hemisphere (fine or default if only one hemisphere)  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11]
   ffreeze: False
-  lr: 1.0e-4
+  lr: 4.0e-4
   weight_decay: 1.0e-3
-  batch_size: 256
+  batch_size: 128
   fine_k: 0.0
   fine_per_k: 0.0
   num_workers: 6
-  dropout: 0.6
+  dropout: 0.5
+  # model_path: /home/gideon/Dev/bilateral-brain/runs/unilateral_specialize-unilateral-vgg11-fine/20230617110814-seed7/checkpoints/epoch=297-val_acc=0.604.ckpt     # source location of specific checkpoint to load
 
 ckpt_callback:
   save_top_k: 1

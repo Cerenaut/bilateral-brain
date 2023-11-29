@@ -25,8 +25,17 @@ class VGG11(nn.Module):
         super().__init__()
     
         self.vgg = models.vgg11(pretrained=False)
-        self.num_features = self.vgg.classifier[-1].in_features
-        self.vgg.classifier[-1] = nn.Identity()
+
+        self.num_features = 512 * 7 * 7
+
+        # remove the classifier
+        self.vgg.classifier = nn.Identity()
+
+        # # replace the classifier
+        # self.vgg.classifier = nn.Sequential(
+        #     nn.Linear(512 * 7 * 7, self.num_features),
+        #     nn.ReLU(True),
+        # )
 
     def forward(self, x):
         return self.vgg(x)

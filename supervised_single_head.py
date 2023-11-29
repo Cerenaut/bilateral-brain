@@ -10,7 +10,7 @@ import torchvision.utils as vutils
 import torch.nn.functional as F
 from torch import Tensor, nn
 from torch.optim.optimizer import Optimizer
-from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR
+from torch.optim.lr_scheduler import _LRScheduler, MultiStepLR, StepLR, CosineAnnealingLR
 
 from models.macro import unilateral
 from lightning import LightningModule
@@ -56,7 +56,7 @@ class SupervisedLightningModuleSingleHead(LightningModule):
         self.weight_decay = self.config['hparams']['weight_decay']
         self.learning_rate = self.config['hparams']['lr']
         # self.warmup_epochs = self.config['hparams']['warmup_epochs']
-        # self.max_epochs = self.config['trainer_params']['max_epochs']
+        self.max_epochs = self.config['trainer_params']['max_epochs']
 
         self._initialize_model()
 
@@ -141,6 +141,13 @@ class SupervisedLightningModuleSingleHead(LightningModule):
         optimizer = torch.optim.Adam(self.model.parameters(), 
                                     lr=self.learning_rate, 
                                     weight_decay=self.weight_decay)
-        return optimizer
-        # scheduler = LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=1, max_epochs=self.max_epochs)
-        # return [optimizer], [scheduler]
+        
+
+        # scheduler = {
+        #     'scheduler': MultiStepLR(optimizer, milestones=[200,300,350,376], gamma=0.25),
+        #     'interval': 'epoch', # 'step' for step-wise, 'epoch' for epoch-wise
+        # }
+
+        scheduler = CosineAnnealingLR(optimizer, T_max=self.max_epochs, eta_min=self.learning_rate)
+
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}
