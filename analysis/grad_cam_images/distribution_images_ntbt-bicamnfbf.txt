@@ -1,0 +1,11 @@
+../../datasets/CIFAR-100/test/61/dessert_plate_s_000009.png
+../../datasets/CIFAR-100/test/99/roundworm_s_001359.png
+../../datasets/CIFAR-100/test/90/train_s_000447.png
+../../datasets/CIFAR-100/test/38/kangaroo_s_002311.png
+../../datasets/CIFAR-100/test/38/great_grey_kangaroo_s_000099.png
+../../datasets/CIFAR-100/test/44/iguanid_lizard_s_000046.png
+../../datasets/CIFAR-100/test/83/sweet_pepper_s_002163.png
+../../datasets/CIFAR-100/test/25/sofa_s_000007.png
+../../datasets/CIFAR-100/test/15/dromedary_s_000839.png
+../../datasets/CIFAR-100/test/3/bear_s_000128.png
+../../datasets/CIFAR-100/test/63/porcupine_s_002250.png

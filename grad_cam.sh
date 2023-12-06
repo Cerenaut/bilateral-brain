@@ -6,3 +6,6 @@ python grad_cam.py -m resnet18 -ckpt "" --gpu -f $1
 python grad_cam.py -m resnet34 -ckpt "" --gpu -f $1
 python grad_cam.py -m resnet50 -ckpt "" --gpu -f $1
 python grad_cam.py -m vgg11 -ckpt "" --gpu -f $1
+
+
+python grad_cam.py -m broad -ckpt "runs/bilateral_non_specialized-bilateral-resnet9-resnet9-both/20230611065622-seed41/checkpoints/epoch=165-val_acc=1.492.ckpt" --gpu -f analysis/grad_cam_images/distribution_images_nfbf-bicamntbt.txt

@@ -59,7 +59,7 @@ The main entry point is `trainer.py`, used to train, validate and test.
 
 ## Run the system
 The easiest way to run the system in the stereotypical way (as in the section 'The main idea' above), is to use the `train_system.py` script. It enables you to run several seeds for each single hemisphere, and then run several seeds on the whole bilateral architecture also. It is also quite configurable i.e. different backbones.
-The script depends the base configs and modifies them.
+The script depends on the base configs and modifies them.
 
 You can have finer level control, and do different variations, by running `trainer.py` and creating new config files as required. A number of pre-set configs are also available and can be modified, in the `config` folder.
 

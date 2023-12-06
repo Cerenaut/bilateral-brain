@@ -135,7 +135,7 @@ class UnilateralNet(nn.Module):
         self.mode_heads = mode_heads
         self.mode_out = mode_out
 
-        # create the hemispheres
+        # create the hemisphere
         self.hemisphere = globals()[arch](Namespace(**{"k": k, "k_percent": per_k,}))
         
         # add heads
@@ -271,37 +271,15 @@ def load_hemi_model(model, ckpt_path):
     model.load_state_dict(model_dict, strict=False)
     return model
 
-############## THESE ONES USED BY GRADCAM AND TEST ##############
+############## THESE ONES USED BY GRADCAM ##############
 
 def load_model(model, ckpt_path):
-    """[summary]
-
-    Args:
-        ckpt_path ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-
-    # TODO this version is used by gradcam, so will need to update with new names
-
     sdict = torch.load(ckpt_path)['state_dict']
-
-    model_dict = {k.replace('model.', '').replace('encoder.', ''):v for k,v in sdict.items()}
+    model_dict = {k.replace('model.', ''):v for k,v in sdict.items()}
     model.load_state_dict(model_dict)
     return model
 
-def load_bicam_model(model, ckpt_path):
-    """[summary]
-
-    Args:
-        ckpt_path ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-
-    # TODO I belive this is used to load the bilateral model. Both hemispheres and heads.
+def load_bilateral_model(model, ckpt_path):
     sdict = torch.load(ckpt_path)['state_dict']
     model_dict = {k.replace('model_', '').replace('encoder.', ''):v for k,v in sdict.items() if not 'combiner' in k and not 'fc' in k}
     fc_dict = {k.replace('combiner.', '').replace('broad.', 'ccombiner.').replace('narrow.', 'fcombiner.'):v for k,v in sdict.items() if 'combiner' in k}

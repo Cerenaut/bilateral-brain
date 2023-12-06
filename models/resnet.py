@@ -170,6 +170,7 @@ class ResidualBlock(nn.Module):
 
 
 class ResNet9(nn.Module):
+    
     """
     A Residual network.
     """
@@ -207,7 +208,7 @@ class ResNet9(nn.Module):
 def resnet9(args):
     """ return a ResNet 9 object
     """
-    logger.warning("This implementation of resnet9 does not accept parameters i.e. no sparsity.")
+    logger.warning("This implementation of resnet9 does not use the parameters i.e. no sparsity.")
     return ResNet9()
 
 def resnet18():
