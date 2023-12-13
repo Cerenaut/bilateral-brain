@@ -138,6 +138,10 @@ class UnilateralNet(nn.Module):
         # create the hemisphere
         self.hemisphere = globals()[arch](Namespace(**{"k": k, "k_percent": per_k,}))
         
+        if freeze_params:
+            freeze_params(self.hemisphere)
+            logger.debug("      ---> freeze hemisphere")
+
         # add heads
         num_features = self.hemisphere.num_features
         logger.debug(f"-- num_features: {num_features}")
@@ -271,34 +275,15 @@ def load_hemi_model(model, ckpt_path):
     model.load_state_dict(model_dict, strict=False)
     return model
 
-############## THESE ONES USED BY GRADCAM ##############
-
 def load_model(model, ckpt_path):
     sdict = torch.load(ckpt_path)['state_dict']
     model_dict = {k.replace('model.', ''):v for k,v in sdict.items()}
-    model.load_state_dict(model_dict)
+    model.load_state_dict(model_dict, strict=False)
     return model
 
 def load_bilateral_model(model, ckpt_path):
     sdict = torch.load(ckpt_path)['state_dict']
-    model_dict = {k.replace('model_', '').replace('encoder.', ''):v for k,v in sdict.items() if not 'combiner' in k and not 'fc' in k}
-    fc_dict = {k.replace('combiner.', '').replace('broad.', 'ccombiner.').replace('narrow.', 'fcombiner.'):v for k,v in sdict.items() if 'combiner' in k}
-    model_dict.update(fc_dict)
-    model.load_state_dict(model_dict)
+    model_dict = {k.replace('model.', ''):v for k,v in sdict.items()}
+    model.load_state_dict(model_dict, strict=False)
     return model
 
-def load_feat_model(model, ckpt_path):
-    """[summary]
-
-    Args:
-        ckpt_path ([type]): [description]
-
-    Returns:
-        [type]: [description]
-    """
-
-    # TODO not sure what encoder is for ... fix when need to use this
-    sdict = torch.load(ckpt_path)['state_dict']
-    model_dict = {k.replace('model.', '').replace('encoder.', ''):v for k,v in sdict.items() if 'fc' not in k}
-    model.load_state_dict(model_dict)
-    return model

@@ -12,12 +12,14 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 
 from datamodule import DataModule
+from models.macro import fix_weights_bilateral, load_bilateral_model, load_model
 from supervised_dual_head import SupervisedLightningModuleDualHead
 from supervised_single_head import SupervisedLightningModuleSingleHead
 
 from utils import run_cli, yaml_func
 
 DEBUG = False
+TRAIN = False
 
 def count_trainable_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -99,14 +101,14 @@ def collect_results_single(runs, accuracies):
     }
     return results
 
-def main(config_path) -> None:
+def main(config_path, test_only) -> None:
 
     config = run_cli(config_path=config_path)
     seeds = config['seeds']
     mode_heads = config['hparams']['mode_heads']
     mode_out = config['hparams']['mode_out']
     mode_hemis = config['hparams']['mode_hemis']
-
+        
     runs, accuracies, checkpoints = [], [], []               # one for each seed
     for seed in seeds:
         print(f"Running seed {seed}")
@@ -128,10 +130,29 @@ def main(config_path) -> None:
         if config['trainer_params']['default_root_dir'] == "None":
             config['trainer_params']['default_root_dir'] = osp.dirname(__file__)
    
-        if mode_heads == 'both':
-            model = SupervisedLightningModuleDualHead(config)
+        if not test_only:
+            if mode_heads == 'both':
+                model = SupervisedLightningModuleDualHead(config)
+            else:
+                model = SupervisedLightningModuleSingleHead(config)
+
         else:
-            model = SupervisedLightningModuleSingleHead(config)
+            # if a single model path is defined, then load the whole model from that path
+            # this is usually used for testing of bilateral
+            # otherwise you would optionally load the hemis and train the classifiers
+
+            if ('model_path' not in config['hparams']) or ('model_path' in config['hparams'] and config['hparams']['model_path'] is None):
+                exit("Cannot test without a single model path. Please specify a checkpoint path.")
+
+            ckpt_path = config['hparams']['model_path']
+            
+            if mode_heads == 'both':
+                model = SupervisedLightningModuleDualHead.load_from_checkpoint(ckpt_path)
+            else:
+                model = SupervisedLightningModuleSingleHead.load_from_checkpoint(ckpt_path)
+            
+            print('----- loaded model at: -----', ckpt_path)
+
 
         num_trainable_params = count_trainable_parameters(model)
         print(f'+++++++++ Number of trainable parameters: {num_trainable_params} +++++++++')
@@ -156,7 +177,7 @@ def main(config_path) -> None:
                           batch_size=config['hparams']['batch_size'],
                           num_workers=config['hparams']['num_workers'])
 
-        if mode_hemis != 'ensemble':
+        if not test_only and mode_hemis != 'ensemble':
             trainer.fit(model, datamodule=imdm)
             
             # get the path to the best checkpoint saved by the callback
@@ -195,6 +216,9 @@ def main(config_path) -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Dual hemisphere training/testing')
     parser.add_argument('--config', type=str, default='./configs/config.yaml',
-                    help='Path to the base config file for training macro-arch with 2 heads. Relative to the folder where you ran this from.')
+                        help='Path to the base config file for training macro-arch with 2 heads. Relative to the folder where you ran this from.')
+    parser.add_argument('--test', 
+                        action="store_true",
+                        help='Just test the model from the checkpoint specified in config `model_path`.')
     args = parser.parse_args()
-    main(args.config)
+    main(args.config, args.test)

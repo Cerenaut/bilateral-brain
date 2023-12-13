@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Python: Current File",
             "type": "python",
@@ -82,6 +83,46 @@
                 "PYTHONPATH": "${workspaceRoot}"
             },
             "console": "integratedTerminal"
-        },         
+        },   
+        {
+            "name": "bilateral - gradcam",
+            "type": "python",
+            "request": "launch",
+            "program": "grad_cam.py",
+            "args": ["-c", "runs/bilateral_non_specialized-bilateral-resnet9-resnet9-both/20230611074542-seed42/config.yaml",
+             "-ckpt", "runs/bilateral_non_specialized-bilateral-resnet9-resnet9-both/20230611074542-seed42/checkpoints/epoch=159-val_acc=1.476.ckpt",
+             "--gpu", 
+             "-f", "analysis/grad_cam_images/distribution_images_nfbf-bicamntbt.txt"],
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "unilateral - gradcam",
+            "type": "python",
+            "request": "launch",
+            "program": "grad_cam.py",
+            "args": ["-c", "runs/unilateral_specialize-unilateral-resnet9-fine/20230524164403-seed0/config.yaml",
+             "-ckpt", "runs/unilateral_specialize-unilateral-resnet9-fine/20230524164403-seed0/checkpoints/epoch=165-val_acc=0.689.ckpt",
+             "--gpu", 
+             "-f", "analysis/grad_cam_images/distribution_images_nfbf-bicamntbt.txt"],
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "bilateral test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "trainer.py",
+            "args": ["--config", "configs/config_test.yaml", "--test"],
+            "env": {
+                "PYTHONPATH": "${workspaceRoot}"
+            },
+            "console": "integratedTerminal"
+        },        
     ]
 }

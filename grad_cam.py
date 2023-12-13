@@ -63,7 +63,7 @@ def unilateral_single_head_gradcam(args):
                 "mode_heads": config["hparams"].get("mode_heads"),
                 "farch": config["hparams"].get("farch"),
                 "fmodel_path": None,
-                "ffreeze_params": True,
+                "ffreeze_params": False,
                 "fine_k": config["hparams"].get("fine_k"),
                 "fine_per_k": config["hparams"].get("fine_per_k"),
                 "dropout": config["hparams"].get("dropout", 0.0)
@@ -77,9 +77,9 @@ def unilateral_single_head_gradcam(args):
 
     res1 = model.hemisphere.conv[7]
     res2 = model.hemisphere.conv[16]
-    target_layers = [res1[-1], res2[-1]]
+    target_layers = [res1, res2]
     
-    dest_dir = f"./{args.src_dir}/{args.mode}"
+    dest_dir = f"./{args.src_dir}/unilateral"
     if Path(dest_dir).exists() and Path(dest_dir).is_dir():
         shutil.rmtree(dest_dir)
     Path(dest_dir).mkdir(exist_ok=True, parents=True)
@@ -110,8 +110,8 @@ def bilateral_gradcam(args):
             "carch": config["hparams"].get("carch", None),
             "fmodel_path": None,
             "cmodel_path": None,
-            "ffreeze_params": True,
-            "cfreeze_params": True,
+            "ffreeze_params": False,
+            "cfreeze_params": False,
             "fine_k": config["hparams"].get("fine_k"),
             "fine_per_k": config["hparams"].get("fine_per_k"),
             "coarse_k": config["hparams"].get("coarse_k"),
@@ -130,9 +130,9 @@ def bilateral_gradcam(args):
     coarse_res1 = model.coarse_hemi.conv[7]
     coarse_res2 = model.coarse_hemi.conv[16]
 
-    target_layers = [fine_res1[-1], fine_res2[-1], coarse_res1[-1], coarse_res2[-2]]
+    target_layers = [coarse_res1, coarse_res2, fine_res1, fine_res2]
 
-    dest_dir = f"./{args.src_dir}/{args.mode}"
+    dest_dir = f"./{args.src_dir}/bilateral"
     if Path(dest_dir).exists() and Path(dest_dir).is_dir():
         shutil.rmtree(dest_dir)
     Path(dest_dir).mkdir(exist_ok=True, parents=True)
@@ -199,3 +199,4 @@ if __name__ == '__main__':
 # Run Command
 # python grad_cam.py -c runs/unilateral_specialize-unilateral-resnet9-fine/20230524164403-seed0/config.yaml -ckpt runs/unilateral_specialize-unilateral-resnet9-fine/20230524164403-seed0/checkpoints/epoch=165-val_acc=0.689.ckpt --gpu -f analysis/grad_cam_images/distribution_images_nfbf-bicamntbt.txt
 
+# python grad_cam.py -c runs/bilateral_non_specialized-bilateral-resnet9-resnet9-both/20230611074542-seed42/config.yaml -ckpt runs/bilateral_non_specialized-bilateral-resnet9-resnet9-both/20230611074542-seed42/checkpoints/epoch=159-val_acc=1.476.ckpt --gpu -f analysis/grad_cam_images/distribution_images_nfbf-bicamntbt.txt

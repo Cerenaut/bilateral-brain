@@ -19,6 +19,8 @@ import os.path
 import lightning as pl
 from utils import setup_logger
 
+PRINT_TEST_RESULT = False
+
 logger = setup_logger(__name__)
 
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
@@ -80,6 +82,11 @@ class DualHeadsDataset(Dataset):
             self.samples.extend(glob.glob(osp.join(root, '*', f'*{ext}')))
         
         self._load_coarse_labels(raw_data_path)
+        
+        if PRINT_TEST_RESULT:
+            with open("labels.csv", "w") as file:
+                for idx, sample in enumerate(self.samples):
+                    file.write(f"{idx}, {sample}\n")
 
     def _load_coarse_labels(self, raw_data_path):
         def unpickle(file):

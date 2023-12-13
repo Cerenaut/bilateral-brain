@@ -12,8 +12,10 @@ sys.path.append('../')
 from models.macro import bilateral, unilateral, ensemble
 from utils import setup_logger
 
-logger = setup_logger(__name__)
+# if you want to print result for each sample, set this to True
+PRINT_TEST_RESULT = False
 
+logger = setup_logger(__name__)
 
 class SupervisedLightningModuleDualHead(LightningModule):
     def __init__(
@@ -117,6 +119,16 @@ class SupervisedLightningModuleDualHead(LightningModule):
         t_coarse_arr = torch.cat(t_coarse_arr, 0).numpy()
         acc_fine = accuracy_score(t_fine_arr, y_fine_arr)
         acc_coarse = accuracy_score(t_coarse_arr, y_coarse_arr)
+
+        if PRINT_TEST_RESULT:
+            correct_fine = [t == y for t, y in zip(t_fine_arr, y_fine_arr)]
+            correct_coarse = [t == y for t, y in zip(t_coarse_arr, y_coarse_arr)]
+ 
+            with open("results_fine_coarse.csv", "w") as file:
+                for idx, (correct_fine, correct_coarse) in enumerate(zip(correct_fine, correct_coarse)):
+                    file.write(f"{idx}, {'1' if correct_fine else '0'}, {'1' if correct_coarse else '0'}\n")
+
+
         return acc_fine, acc_coarse
 
     def training_step(self, batch, batch_idx):

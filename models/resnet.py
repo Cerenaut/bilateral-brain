@@ -137,7 +137,6 @@ class ResNet(nn.Module):
         output = self.avg_pool(output)
         return output
 
-
 class ResidualBlock(nn.Module):
     """
     A residual block as defined by He et al.
@@ -145,29 +144,31 @@ class ResidualBlock(nn.Module):
 
     def __init__(self, in_channels, out_channels, kernel_size, padding):
         super(ResidualBlock, self).__init__()
-        self.conv_res1 = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size,
+        
+        self.conv_res1 = nn.Conv2d(in_channels=in_channels, 
+                                   out_channels=out_channels, kernel_size=kernel_size,
                                    padding=padding, bias=False)
-        self.conv_res1_bn = nn.BatchNorm2d(num_features=out_channels, momentum=0.9)
-        self.conv_res2 = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=kernel_size,
+        
+        self.conv_res1_bn = nn.Sequential(
+            nn.BatchNorm2d(num_features=out_channels, momentum=0.9), 
+            nn.ReLU(inplace=False))
+        
+        self.conv_res2 = nn.Conv2d(in_channels=out_channels, 
+                                   out_channels=out_channels, kernel_size=kernel_size,
                                    padding=padding, bias=False)
-        self.conv_res2_bn = nn.BatchNorm2d(num_features=out_channels, momentum=0.9)
-        self.downsample = None
-
-        self.relu = nn.ReLU(inplace=False)
+        
+        self.conv_res2_bn = nn.Sequential(
+            nn.BatchNorm2d(num_features=out_channels, momentum=0.9), 
+            nn.ReLU(inplace=False))
 
     def forward(self, x):
         residual = x
 
-        out = self.relu(self.conv_res1_bn(self.conv_res1(x)))
+        out = self.conv_res1_bn(self.conv_res1(x))
         out = self.conv_res2_bn(self.conv_res2(out))
 
-        if self.downsample is not None:
-            residual = self.downsample(residual)
-
-        out = self.relu(out)
         out = out + residual
         return out
-
 
 class ResNet9(nn.Module):
     

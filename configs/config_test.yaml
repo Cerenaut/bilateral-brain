@@ -1,0 +1,47 @@
+seeds: [41]    # it is possible to do multiple seeds (if there is only 1, it must still be in an array)
+evaluate: True
+save_dir: ./runs/   # exp output folder: logs, checkpoints, hparams and accuracy
+exp_name: bilateral_non_specialized
+
+trainer_params:
+  accelerator: auto
+  devices: auto
+  default_root_dir: ./runs  # root folder for pytorch-lightning (but logs and checkpoints go to the logger save_dir)
+  max_epochs: 100
+  log_every_n_steps: 50
+  check_val_every_n_epoch: 2
+  accumulate_grad_batches: 1
+
+dataset:
+  train_dir: datasets/CIFAR100/train
+  test_dir: datasets/CIFAR100/test
+  raw_data_dir: ../datasets/cifar-100-python/  # needs a trailing slash
+
+logger:
+  type: TensorBoardLogger
+
+hparams:
+  mode_out: pred             # where to get output from:        [pred | feature]
+  mode_heads: both           # which heads to sue:              [fine, coarse, both, features]
+  mode_hemis: bilateral      # which hemispheres to use:        [unilateral, bilateral, ensemble]
+  farch: resnet9            # architecture for 'fine' learning  [resnet9 | sparse_resnet9 | inverted_resnet9, resnet_x, vgg11] 
+  carch: resnet9            # architecture for 'coarse' learning e.g. resnet9 THIS IS IGNORED if macro_arch is 'unilateral'
+  ffreeze: False
+  cfreeze: False
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+  warmup_epochs: 0
+  batch_size: 256
+  num_workers: 4
+  fine_k: 
+  fine_per_k: 
+  coarse_k: 
+  coarse_per_k: 
+  dropout: 0.6
+  model_path: runs/bilateral_non_specialized-bilateral-resnet9-resnet9-both/20230611074542-seed42/checkpoints/epoch=159-val_acc=1.476.ckpt 
+
+ckpt_callback:
+  save_top_k: 1
+  monitor: val_acc
+  mode: max
+  save_last: False
