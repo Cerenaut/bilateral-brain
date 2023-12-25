@@ -12,7 +12,7 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 
 from datamodule import DataModule
-from models.macro import fix_weights_bilateral, load_bilateral_model, load_model
+from models.macro import load_bilateral_model, load_model
 from supervised_dual_head import SupervisedLightningModuleDualHead
 from supervised_single_head import SupervisedLightningModuleSingleHead
 
@@ -101,7 +101,7 @@ def collect_results_single(runs, accuracies):
     }
     return results
 
-def main(config_path, test_only) -> None:
+def main(config_path, test_only=False) -> None:
 
     config = run_cli(config_path=config_path)
     seeds = config['seeds']
@@ -219,6 +219,11 @@ if __name__ == '__main__':
                         help='Path to the base config file for training macro-arch with 2 heads. Relative to the folder where you ran this from.')
     parser.add_argument('--test', 
                         action="store_true",
+                        default=False,
                         help='Just test the model from the checkpoint specified in config `model_path`.')
     args = parser.parse_args()
+
+
+    print(f"Running with config: {args.config}")
+
     main(args.config, args.test)

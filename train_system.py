@@ -45,7 +45,7 @@ def train_hemispheres(arch, base_config_path, num_seeds, epochs):
       yaml.safe_dump(doc, out)
 
     # run the experiment
-    checkpoints = trainer.main(new_config_path)
+    checkpoints = trainer.main(new_config_path, False)
     checkpoints_dict[label_type] = checkpoints
 
   return checkpoints_dict['fine'], checkpoints_dict['coarse']
@@ -85,7 +85,7 @@ def train_bilateral(f_arch, f_checkpoints, c_arch, c_checkpoints, base_config_pa
       yaml.safe_dump(doc, out)
 
     # run the experiment
-    trainer.main(new_config_path)
+    trainer.main(new_config_path, False)
 
 
 def main(arch, single_head_base_config, dual_head_base_config, 
@@ -107,7 +107,7 @@ if __name__ == '__main__':
                                     and then optionally train/test bilateral architecture with those hemispheres.')
 
   # add arguments
-  parser.add_argument('--arch', type=str, default='resnet9', choices=['resnet9', 'vgg11'],
+  parser.add_argument('--arch', type=str, default='resnet9', choices=['sparse_resnet9', 'resnet9', 'vgg11'],
                       help='Architecture of the model')
   parser.add_argument('--uni_base_config', type=str, default='arch_single_head/configs/config.yaml',
                       help='Path to the base config file for training individual hemisphers (with single head). Relative to the current folder.')
