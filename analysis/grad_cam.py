@@ -21,6 +21,8 @@ sys.path.append("/kaggle/cerenaut/")
 from analysis.bicameral_gradcam import BicameralGradCAM
 from models.sparse_resnet import load_model, load_feat_model, \
                 load_bicam_model,sparse_resnet9, bicameral
+from models.resnet import resnet18, resnet34, resnet50
+from models.vgg import vgg11
 
 IMG_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp',
                   '.pgm', '.tif', '.tiff', '.webp')
@@ -45,6 +47,43 @@ def grad_cam(rgb_img, input_tensor, model, target_layers, use_cuda=True,
     # cv2.waitKey(0)
     visualization = show_cam_on_image(rgb_img, grayscale_cam, use_rgb=False)
     return visualization
+
+def baseline_images(args):
+    test_transform = T.Compose([
+            T.Resize(32),
+            T.ToTensor(),
+            T.Normalize((0.5071, 0.4867, 0.4408), (0.2675, 0.2565, 0.2761))
+        ])
+    with open(args.file, 'r') as f:
+        images = f.read().splitlines()
+    if "resnet50" in args.mode:
+        model = resnet50()
+        target_layers = [model.conv4_x[-1], model.conv5_x[-1]]
+    elif "resnet34" in args.mode:
+        model = resnet34()
+        target_layers = [model.conv4_x[-1], model.conv5_x[-1]]
+    elif "vgg11" in args.mode:
+        model = vgg11()
+        target_layers = [model.features[-2], model.features[-3]]
+    else:
+        model = resnet18()
+        target_layers = [model.conv4_x[-1], model.conv5_x[-1]]
+    model = load_model(model, args.checkpoint)
+    model.to("cuda")
+    # model.eval()
+    
+    dest_dir = f"./{args.src_dir}/{args.mode}"
+    if Path(dest_dir).exists() and Path(dest_dir).is_dir():
+        shutil.rmtree(dest_dir)
+    Path(dest_dir).mkdir(exist_ok=True, parents=True)
+    for image in tqdm(images):
+        img = pil_loader(image)
+        rgb_img = np.asarray(img)[:, :, ::-1] / 255.0
+        img = test_transform(img)
+        img = img.unsqueeze(0).to("cuda")
+        heatmap_img = grad_cam(rgb_img, img, model, target_layers, use_cuda=True, method_name="gradcam")
+        dest_img_path = str(Path(dest_dir).resolve() / image.split("/")[-1])
+        cv2.imwrite(dest_img_path, heatmap_img)
 
 def specialised_images(args):
     test_transform = T.Compose([
@@ -118,7 +157,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(description="Test model on the CIFAR-100 narrow or broad dataset.")
     parser.add_argument("-m", "--mode", default="broad", 
-                        choices=["broad", "narrow", "bicameral"])
+                        choices=["broad", "narrow", "bicameral", "resnet18", "resnet34", "resnet50", "vgg11"])
     parser.add_argument("-ckpt", "--checkpoint", type=str,
                         help="")
     parser.add_argument("-b", "--batch-size", type=int, default=4,
@@ -152,8 +191,10 @@ if __name__ == '__main__':
     args.src_dir = f"grad_cam_{filename}"
     if args.mode == "bicameral":
         bicameral_images(args)
-    else:
+    elif "broad" in args.mode or "narrow" in args.mode:
         specialised_images(args)
+    else:
+        baseline_images(args)
 
 # Run Command
 # Broad - python grad_cam.py -m broad -ckpt "/home/chandramouli/kaggle/cerenaut/classification/logs/broad/left-right-brain-broad-class/layer=1|lr=0.0001|wd=1.0e-5|bs=32|opt=adam|/checkpoints/epoch=93-val_acc=0.75.ckpt" --gpu -f ./distribution_images.txt

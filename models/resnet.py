@@ -219,21 +219,21 @@ class ResNet9(nn.Module):
         out = self.net(x)
         return out
 
-def resnet9():
-    """ return a ResNet 18 object
+def resnet9(args):
+    """ return a ResNet 9 object
     """
     logger.warning("This implementation of resnet9 does not accept parameters i.e. no sparsity.")
     return ResNet9()
 
-def resnet18(mode):
+def resnet18():
     """ return a ResNet 18 object
     """
-    return ResNet(BasicBlock, [2, 2, 2, 2], mode=mode)
+    return ResNet(BasicBlock, [2, 2, 2, 2])
 
-def resnet34(mode):
+def resnet34():
     """ return a ResNet 34 object
     """
-    return ResNet(BasicBlock, [3, 4, 6, 3], mode=mode)
+    return ResNet(BasicBlock, [3, 4, 6, 3])
 
 def resnet50():
     """ return a ResNet 50 object
